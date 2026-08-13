@@ -2,7 +2,6 @@
 /policies/ @hexagone/architecture @hexagone/security
 /infrastructure/ @hexagone/platform
 /ai/ @hexagone/ai-platform
-/docs/constitution/ @hexagone/architecture
 /docs/methodology/ @hexagone/architecture @hexagone/security
 /.github/instructions/ @hexagone/architecture
 /.github/workflows/ @hexagone/platform @hexagone/engineering

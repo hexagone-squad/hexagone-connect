@@ -34,7 +34,10 @@ describe('early-stage setup contract', () => {
     const workflow = readFileSync('.github/workflows/pull-request.yml', 'utf8');
 
     expect(workflow).toContain('pnpm install --frozen-lockfile');
-    expect(workflow).toContain('pnpm run validate');
+    expect(workflow).toContain('build-lint-type-unit');
+    expect(workflow).toContain('security-sdl');
+    expect(workflow).toContain('pr-validation-gate');
+    expect(workflow).toContain('pnpm run check:sdl-source');
     expect(workflow).toContain('pnpm run check:dependency-vulnerabilities');
   });
 
