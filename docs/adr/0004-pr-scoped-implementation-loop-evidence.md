@@ -7,7 +7,7 @@ Accepted
 ## Context
 
 The prior implementation-loop design required every non-trivial pull request to
-modify shared files below `evidence/implementation-loop/`. Parallel pull
+modify shared files below the implementation-loop evidence directory. Parallel pull
 requests therefore conflicted on a manifest and on generated logs even when
 their product changes were independent. Resolving those conflicts could also
 invalidate a manifest's final-diff hash.
