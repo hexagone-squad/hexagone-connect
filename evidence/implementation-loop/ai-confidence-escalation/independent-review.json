@@ -5,16 +5,10 @@
   "result": "passed",
   "diffHash": "b5ea42b1ce39fd11b84f3e1794e14be53aff13c0406b5c1d1535008409393a7e",
   "checkedFiles": [
-    "ai/README.md",
-    "ai/evaluations/inspection-assistant.v1.json",
-    "evidence/implementation-loop/ai-confidence-escalation/after-focused-test.log",
-    "evidence/implementation-loop/ai-confidence-escalation/after-validate.log",
-    "evidence/implementation-loop/ai-confidence-escalation/before-focused-test.log",
-    "services/ai-orchestration/README.md",
-    "services/ai-orchestration/evaluations/inspection-assistant.evaluation.test.ts",
-    "services/ai-orchestration/src/index.ts",
-    "services/ai-orchestration/src/inspection-assistant.ts",
-    "services/ai-orchestration/test/inspection-assistant.contract.test.ts"
+    "evidence/implementation-loop/ai-confidence-escalation/diff-audit.json",
+    "evidence/implementation-loop/ai-confidence-escalation/independent-review.json",
+    "evidence/implementation-loop/ai-confidence-escalation/pr-proof.json",
+    "evidence/implementation-loop/manifest.json"
   ],
   "summary": "Automated lint review of the repository completed with exit code 0 after implementation."
 }

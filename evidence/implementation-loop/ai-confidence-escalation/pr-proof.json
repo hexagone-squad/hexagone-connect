@@ -1,6 +1,6 @@
 {
   "checked": true,
-  "manifestHash": "ae17a77a28cfe3408430a7f5a914dc35949c2edc647b209f715b98ffc3ed6999",
+  "manifestHash": "eadcf68b7a063df6001ad4a8b647947c29a9ce4e449d7eeb0e327e289ae3018e",
   "diffHash": "b5ea42b1ce39fd11b84f3e1794e14be53aff13c0406b5c1d1535008409393a7e",
   "reviewer": "pending-human-approval",
   "notes": "AI behavior change; human approval for consequential AI use is recorded in the pull request by a named reviewer."

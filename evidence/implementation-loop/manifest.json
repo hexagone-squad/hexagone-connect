@@ -8,6 +8,10 @@
     "evidence/implementation-loop/ai-confidence-escalation/after-focused-test.log",
     "evidence/implementation-loop/ai-confidence-escalation/after-validate.log",
     "evidence/implementation-loop/ai-confidence-escalation/before-focused-test.log",
+    "evidence/implementation-loop/ai-confidence-escalation/diff-audit.json",
+    "evidence/implementation-loop/ai-confidence-escalation/independent-review.json",
+    "evidence/implementation-loop/ai-confidence-escalation/pr-proof.json",
+    "evidence/implementation-loop/manifest.json",
     "services/ai-orchestration/README.md",
     "services/ai-orchestration/evaluations/inspection-assistant.evaluation.test.ts",
     "services/ai-orchestration/src/index.ts",
@@ -190,7 +194,7 @@
   "prProof": {
     "path": "evidence/implementation-loop/ai-confidence-escalation/pr-proof.json",
     "checked": true,
-    "manifestHash": "ae17a77a28cfe3408430a7f5a914dc35949c2edc647b209f715b98ffc3ed6999",
+    "manifestHash": "eadcf68b7a063df6001ad4a8b647947c29a9ce4e449d7eeb0e327e289ae3018e",
     "diffHash": "b5ea42b1ce39fd11b84f3e1794e14be53aff13c0406b5c1d1535008409393a7e"
   },
   "finalReviewedDiffHash": "b5ea42b1ce39fd11b84f3e1794e14be53aff13c0406b5c1d1535008409393a7e"
