@@ -1,0 +1,13 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: hexagone
+      POSTGRES_PASSWORD: local-only
+      POSTGRES_DB: hexagone
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hexagone -d hexagone"]
+      interval: 5s
+      timeout: 3s
+      retries: 10

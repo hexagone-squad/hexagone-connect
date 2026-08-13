@@ -1,0 +1,13 @@
+version: 1
+prohibited_autonomous_actions:
+  - change_price
+  - authorize_payment
+  - determine_eligibility
+  - accept_contract
+  - make_legal_decision
+required_controls:
+  - authorized_tools
+  - schema_validation
+  - source_citations
+  - audit_record
+  - human_approval_for_consequential_actions

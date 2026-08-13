@@ -1,0 +1,17 @@
+openapi: 3.1.0
+info:
+  title: Work Management API
+  version: 1.0.0
+paths:
+  /v1/work-requests:
+    post:
+      operationId: createWorkRequest
+      security: [{ bearerAuth: [] }]
+      responses:
+        '202': { description: Accepted }
+        '400': { description: Invalid request }
+        '401': { description: Unauthenticated }
+        '403': { description: Unauthorized tenant access }
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer }

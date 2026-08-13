@@ -1,0 +1,23 @@
+name: PR Quality Gates
+on:
+  pull_request:
+    branches: [main]
+permissions: { contents: read }
+jobs:
+  quality-gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: Install Chromium for applicable browser tests
+        if: ${{ hashFiles('tests/e2e/**/*.e2e.spec.ts', 'tests/e2e/**/*.a11y.spec.ts') != '' }}
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Deterministic validation
+        run: pnpm run validate
+      - name: Dependency vulnerability scan
+        run: pnpm run check:dependency-vulnerabilities

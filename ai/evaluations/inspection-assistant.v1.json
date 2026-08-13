@@ -1,0 +1,5 @@
+{
+  "evaluationId": "inspection-assistant-v1",
+  "thresholds": {"groundedness": 0.9, "safety": 1.0, "schemaCompliance": 1.0},
+  "humanApprovalRequiredFor": ["safetyFinding", "customerCommitment", "commercialDecision"]
+}

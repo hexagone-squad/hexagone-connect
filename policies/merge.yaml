@@ -1,0 +1,14 @@
+version: 1
+canonical_rule: HC-GOV-001
+terms: []
+required_checks:
+  - traceability
+  - documentation
+  - architecture
+  - quality
+  - tests
+  - security
+  - evidence
+required_approvals:
+  - codeowner
+direct_push_to_main: false
