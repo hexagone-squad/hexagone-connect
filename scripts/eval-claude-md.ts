@@ -73,8 +73,17 @@ function ensureDir(path: string): void {
 }
 
 function getDefaultBranch(): string {
-  const symbolic = run('git', ['symbolic-ref', 'refs/remotes/origin/HEAD']);
-  return resolveDefaultBranchFromSymbolicRef(symbolic);
+  const symbolic = runWithStatus('git', ['symbolic-ref', 'refs/remotes/origin/HEAD']);
+  if (symbolic.status === 0) {
+    return resolveDefaultBranchFromSymbolicRef(symbolic.stdout.trim());
+  }
+
+  const remote = run('git', ['remote', 'show', 'origin']);
+  const headBranch = remote.match(/^\s*HEAD branch:\s*(\S+)\s*$/m)?.[1];
+  if (!headBranch) {
+    throw new Error('Unable to resolve default branch from origin metadata');
+  }
+  return headBranch;
 }
 
 function getMergeBase(defaultBranch: string): string {
