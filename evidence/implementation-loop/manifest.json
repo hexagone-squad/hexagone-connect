@@ -1,0 +1,197 @@
+{
+  "schemaVersion": 1,
+  "changeId": "ai-confidence-escalation",
+  "changeType": "ai-behavior",
+  "changedFiles": [
+    "ai/README.md",
+    "ai/evaluations/inspection-assistant.v1.json",
+    "evidence/implementation-loop/ai-confidence-escalation/after-focused-test.log",
+    "evidence/implementation-loop/ai-confidence-escalation/after-validate.log",
+    "evidence/implementation-loop/ai-confidence-escalation/before-focused-test.log",
+    "services/ai-orchestration/README.md",
+    "services/ai-orchestration/evaluations/inspection-assistant.evaluation.test.ts",
+    "services/ai-orchestration/src/index.ts",
+    "services/ai-orchestration/src/inspection-assistant.ts",
+    "services/ai-orchestration/test/inspection-assistant.contract.test.ts"
+  ],
+  "relevantFiles": [
+    "ai/README.md",
+    "ai/evaluations/inspection-assistant.v1.json",
+    "services/ai-orchestration/README.md",
+    "services/ai-orchestration/evaluations/inspection-assistant.evaluation.test.ts",
+    "services/ai-orchestration/src/index.ts",
+    "services/ai-orchestration/src/inspection-assistant.ts",
+    "services/ai-orchestration/test/inspection-assistant.contract.test.ts"
+  ],
+  "relevantFilesHash": "a04ba20a6fc5a55b8efa8d71520427b7b37792143bb38f5e5b141d1e889558db",
+  "applicableSteps": [
+    "specification",
+    "tests",
+    "focused-failure",
+    "before-evidence",
+    "implementation",
+    "verification",
+    "after-evidence",
+    "documentation",
+    "diff-audit",
+    "automated-review",
+    "pr-proof"
+  ],
+  "exemptedSteps": [],
+  "implementationStartedAt": "2026-08-13T19:22:51.000Z",
+  "stepTimestamps": {
+    "specification": "2026-08-13T19:22:20.000Z",
+    "tests": "2026-08-13T19:22:40.000Z",
+    "focused-failure": "2026-08-13T19:22:47.000Z",
+    "before-evidence": "2026-08-13T19:22:47.000Z",
+    "implementation": "2026-08-13T19:22:51.000Z",
+    "verification": "2026-08-13T19:23:43.000Z",
+    "after-evidence": "2026-08-13T19:24:30.000Z",
+    "documentation": "2026-08-13T19:24:35.000Z",
+    "diff-audit": "2026-08-13T19:26:10.000Z",
+    "automated-review": "2026-08-13T19:26:10.000Z",
+    "pr-proof": "2026-08-13T19:26:20.000Z"
+  },
+  "commands": [
+    {
+      "name": "focused",
+      "invocation": "pnpm vitest run services/ai-orchestration/test/inspection-assistant.contract.test.ts",
+      "exitCode": 1,
+      "startedAt": "2026-08-13T19:22:45.000Z",
+      "finishedAt": "2026-08-13T19:22:47.000Z",
+      "scenarioId": "inspection-assistant-confidence-escalation",
+      "environment": "local-linux-node22-pnpm10",
+      "result": "failed"
+    },
+    {
+      "name": "focused",
+      "invocation": "pnpm vitest run services/ai-orchestration/test/inspection-assistant.contract.test.ts",
+      "exitCode": 0,
+      "startedAt": "2026-08-13T19:23:42.000Z",
+      "finishedAt": "2026-08-13T19:23:43.000Z",
+      "scenarioId": "inspection-assistant-confidence-escalation",
+      "environment": "local-linux-node22-pnpm10",
+      "result": "passed"
+    },
+    {
+      "name": "typecheck",
+      "invocation": "pnpm typecheck",
+      "exitCode": 0,
+      "startedAt": "2026-08-13T19:23:48.000Z",
+      "finishedAt": "2026-08-13T19:23:52.000Z",
+      "scenarioId": "repository-typecheck",
+      "environment": "local-linux-node22-pnpm10",
+      "result": "passed"
+    },
+    {
+      "name": "lint",
+      "invocation": "pnpm lint",
+      "exitCode": 0,
+      "startedAt": "2026-08-13T19:23:52.000Z",
+      "finishedAt": "2026-08-13T19:23:53.000Z",
+      "scenarioId": "repository-lint",
+      "environment": "local-linux-node22-pnpm10",
+      "result": "passed"
+    },
+    {
+      "name": "ai-evaluation",
+      "invocation": "pnpm test:ai",
+      "exitCode": 0,
+      "startedAt": "2026-08-13T19:23:53.000Z",
+      "finishedAt": "2026-08-13T19:23:54.000Z",
+      "scenarioId": "ai-evaluation-suite",
+      "environment": "local-linux-node22-pnpm10",
+      "result": "passed"
+    },
+    {
+      "name": "full-verification",
+      "invocation": "pnpm run validate",
+      "exitCode": 0,
+      "startedAt": "2026-08-13T19:23:55.000Z",
+      "finishedAt": "2026-08-13T19:24:30.000Z",
+      "scenarioId": "repository-validate",
+      "environment": "local-linux-node22-pnpm10",
+      "result": "passed"
+    }
+  ],
+  "beforeArtifacts": [
+    {
+      "path": "evidence/implementation-loop/ai-confidence-escalation/before-focused-test.log",
+      "phase": "before",
+      "sha256": "64ad9e6b6d534d1e834ffe7a921ad4b44bab0fbb3a4f8fda4222ff2275901390",
+      "bytes": 5003,
+      "capturedAt": "2026-08-13T19:22:47.000Z",
+      "scenarioId": "inspection-assistant-confidence-escalation",
+      "invocation": "pnpm vitest run services/ai-orchestration/test/inspection-assistant.contract.test.ts",
+      "environment": "local-linux-node22-pnpm10",
+      "observable": "inspection assistant contract test results",
+      "sourceRevision": "b5ea42b1ce39fd11b84f3e1794e14be53aff13c0406b5c1d1535008409393a7e"
+    }
+  ],
+  "afterArtifacts": [
+    {
+      "path": "evidence/implementation-loop/ai-confidence-escalation/after-focused-test.log",
+      "phase": "after",
+      "sha256": "9a27a29b3b529fec6ea7c47051c9c60a88eaba665d598082f96cadb7b6a4e073",
+      "bytes": 544,
+      "capturedAt": "2026-08-13T19:23:43.000Z",
+      "scenarioId": "inspection-assistant-confidence-escalation",
+      "invocation": "pnpm vitest run services/ai-orchestration/test/inspection-assistant.contract.test.ts",
+      "environment": "local-linux-node22-pnpm10",
+      "observable": "inspection assistant contract test results",
+      "sourceRevision": "b5ea42b1ce39fd11b84f3e1794e14be53aff13c0406b5c1d1535008409393a7e"
+    },
+    {
+      "path": "evidence/implementation-loop/ai-confidence-escalation/after-validate.log",
+      "phase": "after",
+      "sha256": "2c4450b48a08da9bd3882567880b8439ee9d9e0f229e38dce5c46a03b5c6b74e",
+      "bytes": 8446,
+      "capturedAt": "2026-08-13T19:24:30.000Z",
+      "scenarioId": "repository-validate",
+      "invocation": "pnpm run validate",
+      "environment": "local-linux-node22-pnpm10",
+      "observable": "deterministic validation gate result",
+      "sourceRevision": "b5ea42b1ce39fd11b84f3e1794e14be53aff13c0406b5c1d1535008409393a7e"
+    }
+  ],
+  "focusedTest": {
+    "scenarioId": "inspection-assistant-confidence-escalation",
+    "invocation": "pnpm vitest run services/ai-orchestration/test/inspection-assistant.contract.test.ts",
+    "environment": "local-linux-node22-pnpm10",
+    "before": {
+      "result": "failed",
+      "command": "pnpm vitest run services/ai-orchestration/test/inspection-assistant.contract.test.ts",
+      "exitCode": 1,
+      "capturedAt": "2026-08-13T19:22:47.000Z"
+    },
+    "after": {
+      "result": "passed",
+      "command": "pnpm vitest run services/ai-orchestration/test/inspection-assistant.contract.test.ts",
+      "exitCode": 0,
+      "capturedAt": "2026-08-13T19:23:43.000Z"
+    }
+  },
+  "fullVerification": {
+    "command": "pnpm run validate",
+    "exitCode": 0,
+    "result": "passed",
+    "scenarioId": "repository-validate",
+    "environment": "local-linux-node22-pnpm10",
+    "capturedAt": "2026-08-13T19:24:30.000Z"
+  },
+  "diffAudit": {
+    "path": "evidence/implementation-loop/ai-confidence-escalation/diff-audit.json",
+    "diffHash": "b5ea42b1ce39fd11b84f3e1794e14be53aff13c0406b5c1d1535008409393a7e"
+  },
+  "independentReview": {
+    "path": "evidence/implementation-loop/ai-confidence-escalation/independent-review.json",
+    "diffHash": "b5ea42b1ce39fd11b84f3e1794e14be53aff13c0406b5c1d1535008409393a7e"
+  },
+  "prProof": {
+    "path": "evidence/implementation-loop/ai-confidence-escalation/pr-proof.json",
+    "checked": true,
+    "manifestHash": "ae17a77a28cfe3408430a7f5a914dc35949c2edc647b209f715b98ffc3ed6999",
+    "diffHash": "b5ea42b1ce39fd11b84f3e1794e14be53aff13c0406b5c1d1535008409393a7e"
+  },
+  "finalReviewedDiffHash": "b5ea42b1ce39fd11b84f3e1794e14be53aff13c0406b5c1d1535008409393a7e"
+}
