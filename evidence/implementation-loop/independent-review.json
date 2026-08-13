@@ -3,7 +3,7 @@
   "command": "git diff --check && pnpm lint && pnpm test && pnpm run build",
   "exitCode": 0,
   "result": "passed",
-  "diffHash": "c1365f619e510996297d38efbeed84a8923229235d2336d14af14d1ee5f9982d",
+  "diffHash": "bba39c85c33c7694d51d36d72f72bb53e720c42881892044ed8ca40eeb9fbc89",
   "checkedFiles": [
     ".github",
     "docs",
