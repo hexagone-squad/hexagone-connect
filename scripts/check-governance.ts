@@ -215,7 +215,7 @@ function checkDocs(): void {
   const scripts = packageManifest.scripts ?? {};
 
   function validateDocumentedPath(owner: string, documentedPath: string): void {
-    const optionalGeneratedPaths = new Set(['.env', 'evidence/implementation-loop/manifest.json']);
+    const optionalGeneratedPaths = new Set(['.env']);
     if (
       documentedPath.includes('*') ||
       documentedPath.includes(' ') ||

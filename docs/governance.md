@@ -46,7 +46,7 @@ The detailed verification contract is [methodology/verification.md](methodology/
 
 ## Evidence Expectations
 
-Non-trivial changes follow [foundation/implementation-loop.md](foundation/implementation-loop.md). Evidence must record exact commands, status, timestamps, environment, and artifacts. A check that was not run is `not run`; a check outside scope is `not applicable`.
+Non-trivial changes follow [foundation/implementation-loop.md](foundation/implementation-loop.md). Put the structured implementation-loop declaration in the PR description; the PR workflow validates it and retains the normalized proof as an artifact. Evidence must record exact commands, status, timestamps, environment, and artifacts. A check that was not run is `not run`; a check outside scope is `not applicable`.
 
 ## Audit Workflow
 
@@ -56,7 +56,7 @@ Use [../skills/audit/SKILL.md](../skills/audit/SKILL.md) for repository audits. 
 
 - Use [.github/pull_request_template.md](../.github/pull_request_template.md).
 - Record `pnpm run validate` and dependency vulnerability scan results.
-- Link Implementation Loop evidence for non-trivial changes.
+- Complete the Implementation Loop evidence declaration in the PR description for non-trivial changes.
 - Request owners from [.github/CODEOWNERS](../.github/CODEOWNERS).
 - Do not imply manual checks passed unless they were actually completed.
 

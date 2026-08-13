@@ -6,7 +6,8 @@ file, then read the local README and contract documentation.
 
 Use the smallest independently testable change. Preserve conventions and
 user-owned worktree changes. Do not perform unrelated refactors. Never claim a
-manual or unexecuted check passed. For non-trivial changes, create and validate
-`evidence/implementation-loop/manifest.json` with `pnpm check:implementation-loop`.
+manual or unexecuted check passed. For non-trivial changes, complete the
+implementation-loop declaration in the PR description; the remote PR workflow
+validates it with `pnpm check:implementation-loop`.
 Never commit, push, amend, reset, rebase,
 create a branch, or open a pull request without explicit user approval.

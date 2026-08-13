@@ -12,9 +12,9 @@ constraints.
 
 ## Required sequence
 
-Every non-trivial change must produce a machine-readable manifest at
-`evidence/implementation-loop/manifest.json` and pass
-`pnpm check:implementation-loop` before merge:
+Every non-trivial pull request must include a machine-readable
+`implementation-loop-evidence` declaration in its description and pass the
+remote `pnpm check:implementation-loop` check before merge:
 
 1. Specification updated.
 2. Tests written or updated.
@@ -28,11 +28,12 @@ Every non-trivial change must produce a machine-readable manifest at
 10. Independent automated review completed.
 11. PR proof prepared.
 
-The validator binds commands, timestamps, scenarios, artifacts, audit/review
-reports, PR proof, relevant source files, and the final reviewed diff hash. A
-late or reconstructed BEFORE artifact is rejected. Trivial changes may exempt
-only objectively justified steps recorded in the manifest; they must still pass
-`pnpm run validate`.
+The validator binds the PR declaration to its number, head and base revisions,
+changed files, final reviewed diff hash, and remote validation result. It writes
+a normalized proof to a CI artifact instead of a shared tracked file, so
+parallel pull requests do not conflict. A late or reconstructed BEFORE artifact
+is rejected. Trivial changes may exempt only objectively justified steps
+recorded in the declaration; they must still pass `pnpm run validate`.
 
 ## Exit criteria
 

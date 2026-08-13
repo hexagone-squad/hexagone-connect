@@ -10,9 +10,9 @@ avoid unrelated refactoring, preserve user-owned worktree changes, and provide
 only factual validation evidence. Agents MUST NOT commit, push, amend, reset,
 rebase, create branches, or open pull requests without explicit user approval.
 
-For non-trivial changes, create and validate
-`evidence/implementation-loop/manifest.json` using `pnpm check:implementation-loop`,
-then follow the workflow and evidence contract in
+For non-trivial changes, complete the implementation-loop declaration in the PR
+description and let the remote PR workflow validate it using
+`pnpm check:implementation-loop`, then follow the workflow and evidence contract in
 `docs/methodology/CONSTITUTION.md` and `docs/methodology/verification.md`.
 
 ## Repository agent skills

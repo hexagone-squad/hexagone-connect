@@ -2,7 +2,10 @@ name: PR Quality Gates
 on:
   pull_request:
     branches: [main]
-permissions: { contents: read }
+    types: [opened, synchronize, reopened, edited]
+permissions:
+  contents: read
+  pull-requests: read
 jobs:
   quality-gates:
     runs-on: ubuntu-latest
@@ -18,5 +21,14 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - name: Deterministic validation
         run: pnpm run validate
+      - name: Validate implementation-loop declaration
+        run: pnpm run check:implementation-loop
+      - name: Upload implementation-loop proof
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: implementation-loop-proof-${{ github.event.pull_request.number }}
+          path: .ci-artifacts/implementation-loop/
+          if-no-files-found: warn
       - name: Dependency vulnerability scan
         run: pnpm run check:dependency-vulnerabilities

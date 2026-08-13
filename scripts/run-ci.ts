@@ -14,7 +14,6 @@ const stages = [
   'test:e2e',
   'test:a11y',
   'check:test-mapping',
-  'check:implementation-loop',
   'check:secrets',
   'check:licenses',
   'check:docs',

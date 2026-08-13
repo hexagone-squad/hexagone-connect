@@ -1,6 +1,0 @@
-Command: pnpm check:implementation-loop
-Scenario: implementation-loop-manifest-required
-Environment: local macOS workspace, Git branch feat/agent-workflow-system
-Captured after implementation of the evidence fix at 2026-08-13T20:33:02Z.
-Exit code: 0
-Observed result: PASS implementation loop: evidence/implementation-loop/manifest.json
