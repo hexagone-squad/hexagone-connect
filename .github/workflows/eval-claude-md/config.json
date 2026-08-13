@@ -1,0 +1,52 @@
+{
+  "instructionSurface": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    ".github/copilot-instructions.md",
+    ".github/instructions/ai.instructions.md",
+    ".github/instructions/backend.instructions.md",
+    ".github/instructions/contracts.instructions.md",
+    ".github/instructions/governance.instructions.md",
+    ".github/instructions/infrastructure.instructions.md",
+    ".github/instructions/ui.instructions.md",
+    "docs/methodology/CONSTITUTION.md"
+  ],
+  "eagerFiles": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    ".github/copilot-instructions.md",
+    "docs/methodology/CONSTITUTION.md"
+  ],
+  "pathScopedFiles": [
+    ".github/instructions/ai.instructions.md",
+    ".github/instructions/backend.instructions.md",
+    ".github/instructions/contracts.instructions.md",
+    ".github/instructions/governance.instructions.md",
+    ".github/instructions/infrastructure.instructions.md",
+    ".github/instructions/ui.instructions.md"
+  ],
+  "budgets": {
+    "maxEagerFiles": 6,
+    "maxEagerBytes": 60000,
+    "maxPathScopedFiles": 12,
+    "maxPathScopedBytes": 60000
+  },
+  "scenarios": [
+    {
+      "id": "workflow-discovery",
+      "description": "All required slash commands are discoverable via prompt frontmatter."
+    },
+    {
+      "id": "instruction-surface-integrity",
+      "description": "Instruction and rule surface files exist and are snapshotable."
+    },
+    {
+      "id": "budget-compliance",
+      "description": "Eager and path-scoped rule budgets are enforced independently."
+    },
+    {
+      "id": "hallucination-guard",
+      "description": "Prompt and report references are resolvable commands, files, or symbols."
+    }
+  ]
+}

@@ -2,6 +2,8 @@
 
 ## First-Time Setup
 
+Workflow command reference: [governance/agent-workflows.md](governance/agent-workflows.md).
+
 1. Install Node.js compatible with the TypeScript toolchain and pnpm 10.x. CI uses Node.js 22.x.
 2. Install dependencies:
 
