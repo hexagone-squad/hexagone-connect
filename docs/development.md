@@ -188,6 +188,16 @@ For non-trivial changes, follow [foundation/implementation-loop.md](foundation/i
 
 When GitHub PR metadata is unavailable, `pnpm check:implementation-loop` reports not applicable. For a non-trivial pull request, add the structured declaration from the PR template; the remote workflow validates it against the final diff and publishes the proof artifact.
 
+To course-correct in-progress work into the canonical loop, run:
+
+```bash
+pnpm run workflow:wow
+```
+
+Then pass optional arguments at invocation time, for example `/wow <task-name>` or `/wow --accept <task-name>`.
+
+`--accept` only skips initial confirmation. It does not bypass evidence, security, audit, review, or ambiguity gates.
+
 ## Prepare A Change For Review
 
 1. Confirm applicable `HC-*` and `SC-*` rules in [governance.md](governance.md).

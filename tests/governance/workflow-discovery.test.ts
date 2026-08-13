@@ -19,6 +19,7 @@ describe('workflow prompt discovery', () => {
       'audit.prompt.md',
       'verify.prompt.md',
       'review-pr.prompt.md',
+      'wow.prompt.md',
     ];
 
     for (const file of expected) {
@@ -34,6 +35,7 @@ describe('workflow prompt discovery', () => {
       'audit',
       'verify',
       'review-pr',
+      'wow',
     ];
 
     for (const name of expectedNames) {

@@ -61,6 +61,23 @@
 
 ## Implementation Loop proof
 
+Complete the human-readable summary for reviewers, then keep the JSON comment
+below it for remote validation.
+
+| Step                                      | Status: passed / failed / not run / not applicable | Evidence summary or link |
+| ----------------------------------------- | -------------------------------------------------- | ------------------------ |
+| Specification updated                     |                                                    |                          |
+| Tests written or updated                  |                                                    |                          |
+| Focused test failed before implementation |                                                    |                          |
+| BEFORE evidence captured                  |                                                    |                          |
+| Implementation completed                  |                                                    |                          |
+| Focused and full validation passed        |                                                    |                          |
+| AFTER evidence captured                   |                                                    |                          |
+| Documentation verified                    |                                                    |                          |
+| Complete diff audit completed             |                                                    |                          |
+| Automated review completed                |                                                    |                          |
+| Human review evidence prepared            |                                                    |                          |
+
 Paste and complete this JSON comment for every non-trivial change. The remote
 workflow validates it against the final diff and uploads a normalized proof
 artifact. Do not report a manual or unexecuted check as `passed`.
