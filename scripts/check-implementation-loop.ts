@@ -100,6 +100,13 @@ function sha256(value: string | Buffer): string {
   return createHash('sha256').update(value).digest('hex');
 }
 
+function canonicalDiff(diff: string): string {
+  return diff.replace(
+    /^(\+?\s*"?(?:diffHash|finalReviewedDiffHash|manifestHash)"?\s*:\s*")[a-f0-9]{64}(",?\s*)$/gm,
+    '$1<generated-hash>$2',
+  );
+}
+
 function stable(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stable).join(',')}]`;
   if (value && typeof value === 'object') {
@@ -503,7 +510,7 @@ function gitContext(): { changedFiles: string[]; diffHash: string } | undefined 
     const diff = execFileSync('git', ['diff', '--binary', `${base}...HEAD`], {
       stdio: ['ignore', 'pipe', 'ignore'],
     });
-    return { changedFiles, diffHash: sha256(diff) };
+    return { changedFiles, diffHash: sha256(canonicalDiff(diff)) };
   } catch {
     return undefined;
   }

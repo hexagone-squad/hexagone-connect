@@ -1,0 +1,15 @@
+{
+  "tool": "local-independent-review",
+  "command": "git diff --check && pnpm lint && pnpm test && pnpm run build",
+  "exitCode": 0,
+  "result": "passed",
+  "diffHash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "checkedFiles": [
+    ".github",
+    "docs",
+    "evidence/implementation-loop",
+    "package.json",
+    "scripts",
+    "tests"
+  ]
+}

@@ -1,0 +1,6 @@
+Command: pnpm check:implementation-loop
+Scenario: implementation-loop-manifest-required
+Environment: local macOS workspace, Git branch feat/agent-workflow-system
+Captured before implementation of the evidence fix.
+Exit code: 1
+Observed result: IMPLEMENTATION LOOP FAILED [manifest] changeType=unknown: missing manifest evidence/implementation-loop/manifest.json.

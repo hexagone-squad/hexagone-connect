@@ -1,0 +1,15 @@
+{
+  "tool": "local-diff-audit",
+  "command": "git diff --binary origin/main...HEAD",
+  "exitCode": 0,
+  "result": "passed",
+  "diffHash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "checkedFiles": [
+    ".github",
+    "docs",
+    "evidence/implementation-loop",
+    "package.json",
+    "scripts",
+    "tests"
+  ]
+}
