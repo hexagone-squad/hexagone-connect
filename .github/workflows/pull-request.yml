@@ -6,21 +6,150 @@ on:
 permissions:
   contents: read
   pull-requests: read
+env:
+  NODE_VERSION: '22'
 jobs:
-  quality-gates:
+  build-lint-type-unit:
+    name: build-lint-type-unit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: pnpm }
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Format check
+        run: pnpm run format:check
+      - name: Lint
+        run: pnpm run lint
+      - name: Typecheck
+        run: pnpm run typecheck
+      - name: Build
+        run: pnpm run build
+      - name: Unit tests
+        run: pnpm run test:unit
+      - name: Contract tests
+        run: pnpm run test:contracts
+      - name: Architecture tests
+        run: pnpm run test:architecture
+
+  integration-e2e-a11y:
+    name: integration-e2e-a11y
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Install Chromium for applicable browser tests
         if: ${{ hashFiles('tests/e2e/**/*.e2e.spec.ts', 'tests/e2e/**/*.a11y.spec.ts') != '' }}
         run: pnpm exec playwright install --with-deps chromium
-      - name: Deterministic validation
-        run: pnpm run validate
+      - name: Integration tests
+        run: pnpm run test:integration
+      - name: End-to-end tests
+        run: pnpm run test:e2e
+      - name: Accessibility tests
+        run: pnpm run test:a11y
+
+  governance-ownership-policy:
+    name: governance-ownership-policy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Type-safety policy
+        run: pnpm run check:typesafety
+      - name: Ownership policy
+        run: pnpm run check:ownership
+      - name: Contract policy
+        run: pnpm run check:contracts
+      - name: Documentation policy
+        run: pnpm run check:docs
+      - name: Test-mapping policy
+        run: pnpm run check:test-mapping
+      - name: Governance policy
+        run: pnpm run check:governance
+      - name: Localization policy
+        run: pnpm run check:localization
+      - name: Artifact-budget policy
+        run: pnpm run check:budgets
+
+  license-compliance:
+    name: license-compliance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: License allowlist check
+        run: pnpm run check:licenses
+
+  security-sdl:
+    name: security-sdl
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Secret scanning
+        run: pnpm run check:secrets
+      - name: SDL source analysis
+        run: pnpm run check:sdl-source
+      - name: Dependency vulnerability scan
+        run: pnpm run check:dependency-vulnerabilities
+
+  ai-evaluation:
+    name: ai-evaluation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: AI service evaluation tests
+        run: pnpm run test:ai
+      - name: Agent-workflow evaluation tests
+        run: pnpm vitest run tests/governance/eval-claude-md.test.ts tests/governance/workflow-discovery.test.ts
+
+  implementation-loop-proof:
+    name: implementation-loop-proof
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - name: Validate implementation-loop declaration
         run: pnpm run check:implementation-loop
       - name: Upload implementation-loop proof
@@ -30,5 +159,18 @@ jobs:
           name: implementation-loop-proof-${{ github.event.pull_request.number }}
           path: .ci-artifacts/implementation-loop/
           if-no-files-found: warn
-      - name: Dependency vulnerability scan
-        run: pnpm run check:dependency-vulnerabilities
+
+  pr-validation-gate:
+    name: pr-validation-gate
+    runs-on: ubuntu-latest
+    needs:
+      - build-lint-type-unit
+      - integration-e2e-a11y
+      - governance-ownership-policy
+      - license-compliance
+      - security-sdl
+      - ai-evaluation
+      - implementation-loop-proof
+    steps:
+      - name: Aggregate required checks
+        run: echo "PASS main PR validation gate"

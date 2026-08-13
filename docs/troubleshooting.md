@@ -86,6 +86,34 @@ Expected success: documentation references pass.
 
 If this fails, update or remove the broken Markdown link or documented file path.
 
+## Ownership Check Fails
+
+Run:
+
+```bash
+pnpm run check:ownership
+```
+
+Expected success: `PASS ownership policy`.
+
+If this fails, fix invalid owner syntax (owners must start with `@`), restore the catch-all `*` ownership rule, or update stale CODEOWNERS paths that no longer exist.
+
+## SDL Source Analysis Fails
+
+Run:
+
+```bash
+pnpm run check:sdl-source
+```
+
+Expected success: `PASS SDL source analysis`.
+
+If this fails, replace risky constructs such as `eval`, `new Function`, `vm.runIn*`, `exec`, or `shell: true`. For unavoidable controlled exceptions, add a one-line `// SDL-ALLOW` comment directly above the exact line and document why the exception is safe.
+
+## PR Check Name Is Missing In Branch Protection
+
+If a PR cannot merge even though workflow jobs pass, verify that branch protection requires the current check names from [governance.md](governance.md). Old required contexts such as `quality-gates` should be replaced with the current independent checks.
+
 ## Implementation Loop Reports Not Applicable
 
 Run:

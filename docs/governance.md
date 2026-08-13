@@ -60,6 +60,34 @@ Use [../skills/audit/SKILL.md](../skills/audit/SKILL.md) for repository audits. 
 - Request owners from [.github/CODEOWNERS](../.github/CODEOWNERS).
 - Do not imply manual checks passed unless they were actually completed.
 
+## Required PR Check Runs
+
+The repository PR workflow publishes independent check runs so branch protection can require each gate explicitly:
+
+- `build-lint-type-unit`
+- `integration-e2e-a11y`
+- `governance-ownership-policy`
+- `license-compliance`
+- `security-sdl`
+- `ai-evaluation`
+- `implementation-loop-proof`
+- `pr-validation-gate`
+
+Administrators should configure branch protection on `main` to require all checks above, keep code-owner reviews enabled, and keep conversation resolution enabled.
+
+## CI Permissions And Variables
+
+The PR workflow uses read-only permissions:
+
+- `contents: read`
+- `pull-requests: read`
+
+No repository secrets, PATs, tenant identifiers, or service-connection credentials are required for repository-owned checks.
+
+## External Organization-Managed Checks
+
+Some organizations enforce extra checks through GitHub Apps or enterprise policy, such as Component Governance, LicenseCheck, FileAffordance, OwnershipEnforcer, or GitHubPop. Those checks are not implemented in this repository and must be onboarded and required through organization-level configuration.
+
 ## Git Safety
 
 Agents and contributors must preserve user-owned changes and must not commit, push, amend, reset, rebase, create branches, or open pull requests without explicit approval. This is enforced as `HC-GIT-001` in the constitution and repeated in [../AGENTS.md](../AGENTS.md).

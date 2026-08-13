@@ -143,6 +143,24 @@ pnpm test:ai
 
 Integration, E2E, accessibility, localization, and budget checks currently report not applicable unless matching artifacts exist.
 
+## Run Governance And Security Checks Locally
+
+Run the repository-owned PR checks with these commands:
+
+```bash
+pnpm run check:ownership
+pnpm run check:governance
+pnpm run check:docs
+pnpm run check:test-mapping
+pnpm run check:licenses
+pnpm run check:secrets
+pnpm run check:sdl-source
+pnpm run check:dependency-vulnerabilities
+pnpm run test:ai
+```
+
+Expected result: each command exits with status `0` or prints `NOT APPLICABLE` when scoped behavior does not exist yet.
+
 ## Debug
 
 - Type errors: run `pnpm typecheck` and inspect the first TypeScript diagnostic.
@@ -181,7 +199,22 @@ pnpm run validate
 pnpm run build:ci
 ```
 
-4. Fill out [.github/pull_request_template.md](../.github/pull_request_template.md) with exact command results.
-5. Request owners from [.github/CODEOWNERS](../.github/CODEOWNERS).
+4. For branch-protection parity with CI, run the key PR jobs locally:
+
+```bash
+pnpm run format:check
+pnpm run lint
+pnpm run typecheck
+pnpm run build
+pnpm run test:unit
+pnpm run test:contracts
+pnpm run test:architecture
+pnpm run test:integration
+pnpm run test:e2e
+pnpm run test:a11y
+```
+
+5. Fill out [.github/pull_request_template.md](../.github/pull_request_template.md) with exact command results.
+6. Request owners from [.github/CODEOWNERS](../.github/CODEOWNERS).
 
 Do not commit, push, create a branch, or open a pull request unless that action is explicitly approved in the current task.
