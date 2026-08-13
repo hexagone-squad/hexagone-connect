@@ -126,6 +126,30 @@ Expected result outside the GitHub PR workflow: `NOT APPLICABLE implementation l
 
 Expected result in a real non-trivial pull request: the PR-description declaration is validated against the final diff and a proof artifact is uploaded.
 
+## /wow Stops With Preflight Blockers
+
+Run:
+
+```bash
+pnpm run workflow:wow
+```
+
+Use `/wow --accept <task-name>` when you are ready to continue autonomously from the earliest incomplete loop step.
+
+If `/wow` reports missing prerequisites, execute the remediation command it prints (for example `pnpm install --frozen-lockfile`, `gh auth login`, or `pnpm exec playwright install --with-deps chromium`) and re-run `/wow`.
+
+`--accept` does not bypass preflight or evidence gates.
+
+## /wow Reports Ordering Violation
+
+If `/wow` reports implementation before BEFORE evidence:
+
+1. capture `late-before` evidence immediately;
+2. keep the ordering violation in the checklist output;
+3. disclose the limitation in the PR summary.
+
+`late-before` is required for recovery but does not replace true pre-change evidence.
+
 ## Local PostgreSQL Is Needed
 
 Run:
