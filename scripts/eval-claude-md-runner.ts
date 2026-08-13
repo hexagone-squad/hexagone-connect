@@ -70,7 +70,9 @@ function readKnownSymbols(snapshot: SurfaceSnapshot): Set<string> {
   const symbols = new Set<string>();
   for (const file of Object.values(snapshot.files)) {
     for (const line of file.content.split('\n')) {
-      const match = line.match(/\b(?:export\s+)?(?:function|class|interface|const|type)\s+([A-Za-z0-9_]+)/);
+      const match = line.match(
+        /\b(?:export\s+)?(?:function|class|interface|const|type)\s+([A-Za-z0-9_]+)/,
+      );
       if (match) symbols.add(match[1]);
     }
   }
@@ -88,7 +90,10 @@ function scoreDiscovery(prompts: string[]): ScenarioScore {
   ];
   const promptNames = new Set(prompts.map((file) => file.split('/').pop() ?? file));
   const missing = required.filter((requiredName) => !promptNames.has(requiredName));
-  return scoreFromFindings('workflow-discovery', missing.map((name) => `Missing prompt: ${name}`));
+  return scoreFromFindings(
+    'workflow-discovery',
+    missing.map((name) => `Missing prompt: ${name}`),
+  );
 }
 
 function scoreSurface(snapshot: SurfaceSnapshot): ScenarioScore {
@@ -119,7 +124,13 @@ function scoreHallucinations(snapshot: SurfaceSnapshot, prompts: string[]): Scen
     knownFiles.add(normalized);
   });
 
-  const knownCommands = new Set(['pnpm run', 'pnpm test', 'pnpm lint', 'pnpm build', 'pnpm format']);
+  const knownCommands = new Set([
+    'pnpm run',
+    'pnpm test',
+    'pnpm lint',
+    'pnpm build',
+    'pnpm format',
+  ]);
   const knownSymbols = readKnownSymbols(snapshot);
 
   const findings: string[] = [];

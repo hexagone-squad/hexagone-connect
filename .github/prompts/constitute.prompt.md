@@ -4,6 +4,7 @@ description: Propose enforceable constitutional or policy changes with determini
 ---
 
 When creating or amending a repository rule, include:
+
 - rule identifier
 - quality bar and required behavior
 - deterministic enforcement command or check

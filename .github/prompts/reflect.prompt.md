@@ -4,6 +4,7 @@ description: Decide whether a recent defect should become a permanent rule.
 ---
 
 For a given defect, evaluate:
+
 - trigger and root cause
 - recurrence likelihood
 - existing guardrails that failed

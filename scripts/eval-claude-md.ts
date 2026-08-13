@@ -1,4 +1,12 @@
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import {
@@ -36,7 +44,10 @@ function run(command: string, args: string[], allowFailure = false): string {
   return (result.stdout ?? '').trim();
 }
 
-function runWithStatus(command: string, args: string[]): { status: number; stdout: string; stderr: string } {
+function runWithStatus(
+  command: string,
+  args: string[],
+): { status: number; stdout: string; stderr: string } {
   const result = spawnSync(command, args, { encoding: 'utf8' });
   return {
     status: result.status ?? 1,
@@ -47,10 +58,7 @@ function runWithStatus(command: string, args: string[]): { status: number; stdou
 
 function loadConfig(): Config {
   return JSON.parse(
-    readFileSync(
-      resolve(process.cwd(), '.github/workflows/eval-claude-md/config.json'),
-      'utf8',
-    ),
+    readFileSync(resolve(process.cwd(), '.github/workflows/eval-claude-md/config.json'), 'utf8'),
   ) as Config;
 }
 
@@ -109,7 +117,10 @@ function snapshotSurface(ref: string | null, files: string[]): SurfaceSnapshot {
 
 function toSurfaceMarkdown(title: string, snapshot: SurfaceSnapshot): string {
   const rows = Object.entries(snapshot.files)
-    .map(([file, value]) => `| ${file} | ${value.exists ? 'yes' : 'no'} | ${value.bytes} | ${value.contentSha} |`)
+    .map(
+      ([file, value]) =>
+        `| ${file} | ${value.exists ? 'yes' : 'no'} | ${value.bytes} | ${value.contentSha} |`,
+    )
     .join('\n');
   return [
     `# ${title}`,
@@ -137,8 +148,8 @@ function completeDiffFingerprint(baseSha: string, headSha: string): string {
   const committed = runWithStatus('git', ['diff', '--binary', `${baseSha}...${headSha}`]).stdout;
   const staged = runWithStatus('git', ['diff', '--binary', '--staged']).stdout;
   const unstaged = runWithStatus('git', ['diff', '--binary']).stdout;
-  const untrackedPaths = runWithStatus('git', ['ls-files', '--others', '--exclude-standard']).stdout
-    .split('\n')
+  const untrackedPaths = runWithStatus('git', ['ls-files', '--others', '--exclude-standard'])
+    .stdout.split('\n')
     .map((line) => line.trim())
     .filter(Boolean);
 
@@ -212,7 +223,10 @@ function parseScenarioScores(markdown: string): Record<string, number> {
   const result: Record<string, number> = {};
   for (const line of markdown.split('\n')) {
     if (!line.startsWith('|') || line.includes('Scenario') || line.includes('---')) continue;
-    const cells = line.split('|').map((cell) => cell.trim()).filter(Boolean);
+    const cells = line
+      .split('|')
+      .map((cell) => cell.trim())
+      .filter(Boolean);
     if (cells.length < 2) continue;
     const score = Number(cells[1]);
     if (!Number.isFinite(score)) continue;
@@ -277,7 +291,8 @@ function buildPhase1Report(params: {
     };
   }
 
-  const findingsList = findings.length === 0 ? ['- none'] : findings.map((finding) => `- ${finding}`);
+  const findingsList =
+    findings.length === 0 ? ['- none'] : findings.map((finding) => `- ${finding}`);
   return {
     blocked: findings.length > 0,
     findings,
@@ -314,7 +329,10 @@ function latestReceiptPath(runRoot: string): string | null {
 function pruneRuns(runRoot: string): void {
   if (!existsSync(runRoot)) return;
   const runs = readdirSync(runRoot)
-    .map((name) => ({ path: resolve(runRoot, name), createdAt: statSync(resolve(runRoot, name)).mtimeMs }))
+    .map((name) => ({
+      path: resolve(runRoot, name),
+      createdAt: statSync(resolve(runRoot, name)).mtimeMs,
+    }))
     .filter((run) => statSync(run.path).isDirectory());
 
   const { remove } = pruneRunFolders(runs, 10);
@@ -340,8 +358,14 @@ function main(): void {
   const currentSurface = snapshotSurface(null, config.instructionSurface);
   const changedSurface = instructionSurfaceChanged(baselineSurface, currentSurface);
 
-  writeFile(resolve(runPath, 'baseline-snapshot.md'), toSurfaceMarkdown('Baseline Surface', baselineSurface));
-  writeFile(resolve(runPath, 'current-snapshot.md'), toSurfaceMarkdown('Current Surface', currentSurface));
+  writeFile(
+    resolve(runPath, 'baseline-snapshot.md'),
+    toSurfaceMarkdown('Baseline Surface', baselineSurface),
+  );
+  writeFile(
+    resolve(runPath, 'current-snapshot.md'),
+    toSurfaceMarkdown('Current Surface', currentSurface),
+  );
   writeFile(resolve(runPath, 'baseline-snapshot.json'), JSON.stringify(baselineSurface, null, 2));
   writeFile(resolve(runPath, 'current-snapshot.json'), JSON.stringify(currentSurface, null, 2));
 
@@ -378,7 +402,9 @@ function main(): void {
         'Status: BLOCKED',
         '',
         'Reason: independent judge is unavailable.',
-        staleReceipt ? 'Stale receipt detected: prior receipt does not match current diff fingerprint.' : '',
+        staleReceipt
+          ? 'Stale receipt detected: prior receipt does not match current diff fingerprint.'
+          : '',
         '',
       ].join('\n'),
     );
@@ -422,7 +448,10 @@ function main(): void {
     config,
   });
   if (baselineRun.status !== 0) {
-    writeFile(resolve(runPath, 'judge-report.md'), '# Judge Report\n\nStatus: BLOCKED\n\nReason: baseline runner failed.\n');
+    writeFile(
+      resolve(runPath, 'judge-report.md'),
+      '# Judge Report\n\nStatus: BLOCKED\n\nReason: baseline runner failed.\n',
+    );
     pruneRuns(root);
     process.exitCode = 1;
     return;
@@ -436,7 +465,10 @@ function main(): void {
     config,
   });
   if (currentRun.status !== 0) {
-    writeFile(resolve(runPath, 'judge-report.md'), '# Judge Report\n\nStatus: BLOCKED\n\nReason: current runner failed.\n');
+    writeFile(
+      resolve(runPath, 'judge-report.md'),
+      '# Judge Report\n\nStatus: BLOCKED\n\nReason: current runner failed.\n',
+    );
     pruneRuns(root);
     process.exitCode = 1;
     return;
@@ -449,7 +481,9 @@ function main(): void {
     scoreFailures.push('Hallucination guard must score 4/4 in current run.');
   }
   if (staleReceipt) {
-    scoreFailures.push('Stale receipt rejected: diff fingerprint changed since the latest receipt.');
+    scoreFailures.push(
+      'Stale receipt rejected: diff fingerprint changed since the latest receipt.',
+    );
   }
   const blocked = scoreFailures.length > 0;
 

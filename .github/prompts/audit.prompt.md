@@ -7,6 +7,7 @@ Review the full local branch diff against `origin/main`.
 
 Report findings first, ordered by severity, with exact file references.
 For each finding, include:
+
 - risk category
 - evidence from the diff
 - impact if unaddressed

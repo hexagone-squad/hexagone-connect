@@ -90,24 +90,28 @@ describe('eval-claude-md workflow primitives', () => {
     );
     writeFileSync(pathScopedFile, JSON.stringify(['.github/instructions/ai.instructions.md']));
 
-    const runner = spawnSync('pnpm', [
-      'tsx',
-      'scripts/eval-claude-md-runner.ts',
-      '--mode',
-      'current',
-      '--surface-file',
-      surfaceFile,
-      '--prompt-directory',
-      promptsDir,
-      '--budget-file',
-      budgetFile,
-      '--eager-file',
-      eagerFile,
-      '--path-scoped-file',
-      pathScopedFile,
-    ], {
-      encoding: 'utf8',
-    });
+    const runner = spawnSync(
+      'pnpm',
+      [
+        'tsx',
+        'scripts/eval-claude-md-runner.ts',
+        '--mode',
+        'current',
+        '--surface-file',
+        surfaceFile,
+        '--prompt-directory',
+        promptsDir,
+        '--budget-file',
+        budgetFile,
+        '--eager-file',
+        eagerFile,
+        '--path-scoped-file',
+        pathScopedFile,
+      ],
+      {
+        encoding: 'utf8',
+      },
+    );
 
     expect(runner.status).toBe(0);
     const scenarioRows = runner.stdout
@@ -135,24 +139,28 @@ describe('eval-claude-md workflow primitives', () => {
     writeFileSync(eagerFile, JSON.stringify([]));
     writeFileSync(pathScopedFile, JSON.stringify([]));
 
-    const runner = spawnSync('pnpm', [
-      'tsx',
-      'scripts/eval-claude-md-runner.ts',
-      '--mode',
-      'baseline',
-      '--surface-file',
-      resolve(tempRoot, 'missing-surface.json'),
-      '--prompt-directory',
-      resolve(tempRoot, 'missing-prompts'),
-      '--budget-file',
-      budgetFile,
-      '--eager-file',
-      eagerFile,
-      '--path-scoped-file',
-      pathScopedFile,
-    ], {
-      encoding: 'utf8',
-    });
+    const runner = spawnSync(
+      'pnpm',
+      [
+        'tsx',
+        'scripts/eval-claude-md-runner.ts',
+        '--mode',
+        'baseline',
+        '--surface-file',
+        resolve(tempRoot, 'missing-surface.json'),
+        '--prompt-directory',
+        resolve(tempRoot, 'missing-prompts'),
+        '--budget-file',
+        budgetFile,
+        '--eager-file',
+        eagerFile,
+        '--path-scoped-file',
+        pathScopedFile,
+      ],
+      {
+        encoding: 'utf8',
+      },
+    );
 
     expect(runner.status).not.toBe(0);
     rmSync(tempRoot, { recursive: true, force: true });

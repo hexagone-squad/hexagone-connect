@@ -57,7 +57,16 @@ export function buildDiffFingerprint(parts: {
     .map((file) => `path=${file.path}\nsha=${sha256(file.content)}\n`)
     .join('\n');
   return sha256(
-    ['committed', parts.committed, 'staged', parts.staged, 'unstaged', parts.unstaged, 'untracked', untracked].join('\n'),
+    [
+      'committed',
+      parts.committed,
+      'staged',
+      parts.staged,
+      'unstaged',
+      parts.unstaged,
+      'untracked',
+      untracked,
+    ].join('\n'),
   );
 }
 
@@ -70,7 +79,10 @@ export function calculateBudgets(params: {
   const eagerSet = new Set(params.eagerFiles);
   const pathScopedUnique = params.pathScopedFiles.filter((file) => !eagerSet.has(file));
 
-  const eagerBytes = params.eagerFiles.reduce((sum, file) => sum + (params.fileSizes[file] ?? 0), 0);
+  const eagerBytes = params.eagerFiles.reduce(
+    (sum, file) => sum + (params.fileSizes[file] ?? 0),
+    0,
+  );
   const pathScopedBytes = pathScopedUnique.reduce(
     (sum, file) => sum + (params.fileSizes[file] ?? 0),
     0,
@@ -113,7 +125,11 @@ export function parseReceipt(content: string): ParsedReceipt {
   if (lines.length !== 4 || lines[0] !== 'EVAL PASS') {
     throw new Error('Receipt format is invalid');
   }
-  if (!lines[1].startsWith('Base: ') || !lines[2].startsWith('Head: ') || !lines[3].startsWith('Diff: ')) {
+  if (
+    !lines[1].startsWith('Base: ') ||
+    !lines[2].startsWith('Head: ') ||
+    !lines[3].startsWith('Diff: ')
+  ) {
     throw new Error('Receipt format is invalid');
   }
   return {
@@ -140,7 +156,10 @@ export function pruneRunFolders<T extends { path: string; createdAt: number }>(
   };
 }
 
-export function detectFalseImplementsClaims(markdown: string, existingPaths: Set<string>): string[] {
+export function detectFalseImplementsClaims(
+  markdown: string,
+  existingPaths: Set<string>,
+): string[] {
   const findings: string[] = [];
   for (const line of markdown.split('\n')) {
     const match = line.match(/Implements\s*:\s*`?([^`]+)`?/i);
@@ -199,7 +218,12 @@ export function detectHallucinations(params: {
 
   for (const token of inlineCode) {
     if (!token) continue;
-    if (token.includes('/') || token.endsWith('.md') || token.endsWith('.ts') || token.endsWith('.json')) {
+    if (
+      token.includes('/') ||
+      token.endsWith('.md') ||
+      token.endsWith('.ts') ||
+      token.endsWith('.json')
+    ) {
       if (!params.knownFiles.has(token)) findings.push(`Hallucinated file reference: ${token}`);
       continue;
     }
@@ -231,5 +255,12 @@ export function toMarkdownScores(title: string, scores: ScenarioScore[]): string
   const rows = scores
     .map((score) => `| ${score.id} | ${score.score} | ${score.reason.replace(/\|/g, '/')} |`)
     .join('\n');
-  return [`# ${title}`, '', '| Scenario | Score (0-4) | Reason |', '| --- | --- | --- |', rows, ''].join('\n');
+  return [
+    `# ${title}`,
+    '',
+    '| Scenario | Score (0-4) | Reason |',
+    '| --- | --- | --- |',
+    rows,
+    '',
+  ].join('\n');
 }
