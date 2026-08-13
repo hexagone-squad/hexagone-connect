@@ -64,7 +64,9 @@ Non-trivial changes MUST proceed in this order:
 
 Evidence status MUST be recorded as `passed`, `failed`, `not run`, or `not
 applicable` with a reason. Manual or unexecuted checks MUST NOT be reported as
-passed.
+passed. For pull requests, implementation-loop declarations belong in the PR
+description and are validated and retained by the remote PR workflow; generated
+workflow evidence MUST NOT be committed to a shared repository path.
 
 ## Evidence requirements
 

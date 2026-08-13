@@ -94,9 +94,9 @@ Run:
 pnpm check:implementation-loop
 ```
 
-Expected result in this workspace copy without Git metadata: `NOT APPLICABLE implementation loop: Git metadata and manifest are unavailable`.
+Expected result outside the GitHub PR workflow: `NOT APPLICABLE implementation loop: remote pull-request metadata is unavailable`.
 
-Expected result in a real Git branch with non-trivial changed files: a valid `evidence/implementation-loop/manifest.json` is required.
+Expected result in a real non-trivial pull request: the PR-description declaration is validated against the final diff and a proof artifact is uploaded.
 
 ## Local PostgreSQL Is Needed
 

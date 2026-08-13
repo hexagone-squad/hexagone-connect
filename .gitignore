@@ -5,3 +5,5 @@ coverage/
 .env.*
 !.env.example
 evidence/releases/*/raw/
+.ci-artifacts/
+.eval-claude-md/

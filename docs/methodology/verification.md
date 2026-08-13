@@ -23,31 +23,33 @@ contract for repository changes.
 12. localization, documentation, and registration checks;
 13. rule-reference and methodology-integrity checks;
 14. artifact-size budget checks;
-15. applicable AI evaluations;
-16. Implementation Loop proof validation with `pnpm check:implementation-loop`.
+15. applicable AI evaluations.
 
-`pnpm run build:ci` runs `pnpm run validate` and then the network-dependent dependency vulnerability scan. CI uses both gates, reported as separate steps so registry failures and vulnerability findings are actionable.
+`pnpm run build:ci` runs `pnpm run validate` and then the network-dependent dependency vulnerability scan. The PR workflow runs implementation-loop proof validation afterward, because it requires PR metadata. CI reports each as a separate step so registry failures and evidence findings are actionable.
 
 A stage without applicable artifacts MUST report `not applicable` and its reason.
-A non-trivial change with Git metadata MUST fail if
-`evidence/implementation-loop/manifest.json` is missing or stale.
+A non-trivial pull request MUST fail if its implementation-loop declaration is
+missing, stale, or does not match the final diff. The PR workflow must publish
+the validated declaration and remote verification result as a workflow artifact.
 It MUST NOT report success for work it did not execute.
 
-## Implementation Loop evidence manifest
+## Implementation Loop PR evidence
 
-Non-trivial changes require `evidence/implementation-loop/manifest.json`, validated
-by `pnpm check:implementation-loop`. The manifest records the change identifier
-and type, changed and relevant files, applicable and exempted steps, exact
-commands with exit codes and timestamps, scenario/environment identity, BEFORE
-and AFTER artifact hashes and observables, focused failing and passing results,
-full verification, audit and independent-review reports, PR proof, and the final
-reviewed diff hash.
+Non-trivial pull requests require an `implementation-loop-evidence` JSON
+declaration in the PR description, validated by `pnpm check:implementation-loop`
+in the remote PR workflow. The declaration records the change identifier and
+type, changed files, applicable steps, timestamps, BEFORE evidence reference,
+focused failing-test result, documentation verification, diff audit, automated
+review, and PR proof. The workflow binds it to the PR number, head SHA, base
+SHA, final diff hash, and remote `pnpm run validate` outcome, then uploads the
+normalized result as an implementation-loop workflow artifact.
 
-The validator rejects missing or empty artifacts, placeholder or unrelated logs,
-late BEFORE evidence, mismatched scenarios or invocations, stale source or diff
-hashes, unchecked PR proof, and unjustified exemptions. It cannot infer human
-approval, screen-reader results, or cloud verification; those remain explicitly
-manual or external evidence.
+The validator rejects missing or malformed declarations, placeholder text,
+changed-file or diff-hash mismatches, late BEFORE evidence, invalid step order,
+and unjustified exemptions. It cannot infer human approval, screen-reader
+results, or cloud verification; those remain explicitly manual or external
+evidence. Workflow artifacts follow the repository hosting provider's configured
+retention policy; the PR check and its linked run remain the merge record.
 
 A trivial exemption is allowed only for objectively classified typo,
 comment-only, or simple documentation-correction changes. It cannot cover
@@ -83,6 +85,7 @@ must be expanded deliberately instead of rewriting unrelated changes.
 ## Evidence rules
 
 Every validation record MUST contain the exact command, environment, timestamp,
-exit status, and relevant output or artifact location. A check that was not run
-is `not run`; a check without matching scope is `not applicable`; neither may be
-used to claim merge readiness.
+exit status, and relevant output or artifact location. PR-authored declarations
+must distinguish local evidence from the remote commands actually executed by
+the workflow. A check that was not run is `not run`; a check without matching
+scope is `not applicable`; neither may be used to claim merge readiness.

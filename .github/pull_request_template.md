@@ -61,11 +61,33 @@
 
 ## Implementation Loop proof
 
-- Manifest: `evidence/implementation-loop/manifest.json`
-- [ ] `pnpm check:implementation-loop` passed against the final diff
-- [ ] Manifest covers all applicable steps 1–11, or records a valid narrow exemption
-- [ ] BEFORE and AFTER artifacts use the same scenario, invocation, environment, and observable
-- [ ] Audit, automated review, PR proof, and manifest all match the final reviewed diff hash
+Paste and complete this JSON comment for every non-trivial change. The remote
+workflow validates it against the final diff and uploads a normalized proof
+artifact. Do not report a manual or unexecuted check as `passed`.
+
+<!-- implementation-loop-evidence
+{
+	"schemaVersion": 1,
+	"changeId": "replace-with-change-identifier",
+	"changeType": "feature | fix | governance | infrastructure | ai",
+	"changedFiles": ["path/to/changed-file.ts"],
+	"implementationStartedAt": "2026-01-01T00:00:00Z",
+	"steps": {
+		"specification": { "status": "passed", "timestamp": "2026-01-01T00:00:00Z", "detail": "Requirement updated." },
+		"tests": { "status": "passed", "timestamp": "2026-01-01T00:01:00Z", "detail": "Focused test added or updated." },
+		"focused-failure": { "status": "passed", "timestamp": "2026-01-01T00:02:00Z", "detail": "Exact failing command and output link." },
+		"before-evidence": { "status": "passed", "timestamp": "2026-01-01T00:03:00Z", "detail": "Comparable BEFORE evidence link." },
+		"implementation": { "status": "passed", "timestamp": "2026-01-01T00:04:00Z", "detail": "Smallest implementation completed." },
+		"documentation": { "status": "passed", "timestamp": "2026-01-01T00:05:00Z", "detail": "Documentation and registrations checked." },
+		"diff-audit": { "status": "passed", "timestamp": "2026-01-01T00:06:00Z", "detail": "Complete diff audited." },
+		"automated-review": { "status": "passed", "timestamp": "2026-01-01T00:07:00Z", "detail": "Independent automated review completed." },
+		"pr-proof": { "status": "passed", "timestamp": "2026-01-01T00:08:00Z", "detail": "PR evidence reviewed." }
+	}
+}
+-->
+
+- [ ] Remote `pnpm check:implementation-loop` passed against the final diff
+- [ ] The uploaded proof artifact matches this declaration and the remote validation result
 
 ## Validation commands and exact results
 

@@ -9,6 +9,7 @@ Use this page as the canonical navigation map. Prefer updating these documents o
 - [Codebase map](codebase-map.md) — important directories, entry points, tests, config, and where to add changes
 - [Development guide](development.md) — setup, workflow, tests, debugging, docs, and review preparation
 - [Governance guide](governance.md) — constitution summary, verification, evidence, PR, and Git safety rules
+- [Agent workflows](governance/agent-workflows.md) — slash-command workflow system and evaluation artifacts
 - [Troubleshooting guide](troubleshooting.md) — verified command-driven fixes
 - [Glossary](glossary.md) — project-specific terminology
 

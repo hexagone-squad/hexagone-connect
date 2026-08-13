@@ -2,6 +2,8 @@
 
 ## First-Time Setup
 
+Workflow command reference: [governance/agent-workflows.md](governance/agent-workflows.md).
+
 1. Install Node.js compatible with the TypeScript toolchain and pnpm 10.x. CI uses Node.js 22.x.
 2. Install dependencies:
 
@@ -166,7 +168,7 @@ Expected result: documentation references pass.
 
 For non-trivial changes, follow [foundation/implementation-loop.md](foundation/implementation-loop.md) and [methodology/verification.md](methodology/verification.md).
 
-When Git metadata is unavailable, `pnpm check:implementation-loop` reports not applicable. In a real branch with changed files, non-trivial changes require `evidence/implementation-loop/manifest.json` and matching evidence.
+When GitHub PR metadata is unavailable, `pnpm check:implementation-loop` reports not applicable. For a non-trivial pull request, add the structured declaration from the PR template; the remote workflow validates it against the final diff and publishes the proof artifact.
 
 ## Prepare A Change For Review
 
