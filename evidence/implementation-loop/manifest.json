@@ -22,6 +22,7 @@
     "evidence/implementation-loop/manifest.json",
     "evidence/implementation-loop/pr-proof.json",
     "package.json",
+    "scripts/check-implementation-loop.ts",
     "scripts/eval-claude-md-lib.ts",
     "scripts/eval-claude-md-runner.ts",
     "scripts/eval-claude-md.ts",
@@ -48,7 +49,7 @@
     "tests/governance/eval-claude-md.test.ts",
     "tests/governance/workflow-discovery.test.ts"
   ],
-  "relevantFilesHash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "relevantFilesHash": "f4052ac9de92d3c6ce8ac568aa8d85b1cdd802862621e051f99b01330db0779d",
   "applicableSteps": [
     "specification",
     "tests",
@@ -113,13 +114,13 @@
     {
       "path": "evidence/implementation-loop/before-check-implementation-loop.txt",
       "phase": "before",
-      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-      "bytes": 0,
+      "sha256": "acb2ca1ba787fcf78053c03e7bdf0facb5b51da2ac7a7848e0b8d54ac9a011d6",
+      "bytes": 363,
       "capturedAt": "2026-08-13T20:32:56Z",
       "scenarioId": "implementation-loop-manifest-required",
       "invocation": "pnpm check:implementation-loop",
       "environment": "local macOS workspace, Git branch feat/agent-workflow-system",
-      "observable": "Missing manifest causes exit code 1",
+      "observable": "Implementation-loop command outcome for manifest presence",
       "sourceRevision": "82e720e05b511c1640b615206e7312bd6ee803e"
     }
   ],
@@ -127,14 +128,14 @@
     {
       "path": "evidence/implementation-loop/after-check-implementation-loop.txt",
       "phase": "after",
-      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
-      "bytes": 0,
+      "sha256": "fd896fe157183185160681239893a228f396d1897f7e44c1c5fda0f365dfd57b",
+      "bytes": 336,
       "capturedAt": "2026-08-13T20:33:04Z",
       "scenarioId": "implementation-loop-manifest-required",
       "invocation": "pnpm check:implementation-loop",
       "environment": "local macOS workspace, Git branch feat/agent-workflow-system",
-      "observable": "Valid manifest causes exit code 0",
-      "sourceRevision": "PENDING_FINAL_DIFF_HASH"
+      "observable": "Implementation-loop command outcome for manifest presence",
+      "sourceRevision": "c1365f619e510996297d38efbeed84a8923229235d2336d14af14d1ee5f9982d"
     }
   ],
   "focusedTest": {
@@ -164,17 +165,17 @@
   },
   "diffAudit": {
     "path": "evidence/implementation-loop/diff-audit.json",
-    "diffHash": "0000000000000000000000000000000000000000000000000000000000000000"
+    "diffHash": "c1365f619e510996297d38efbeed84a8923229235d2336d14af14d1ee5f9982d"
   },
   "independentReview": {
     "path": "evidence/implementation-loop/independent-review.json",
-    "diffHash": "0000000000000000000000000000000000000000000000000000000000000000"
+    "diffHash": "c1365f619e510996297d38efbeed84a8923229235d2336d14af14d1ee5f9982d"
   },
   "prProof": {
     "path": "evidence/implementation-loop/pr-proof.json",
     "checked": true,
-    "manifestHash": "0000000000000000000000000000000000000000000000000000000000000000",
-    "diffHash": "0000000000000000000000000000000000000000000000000000000000000000"
+    "manifestHash": "740e4a9dc2427d413d57bd58264bdae18dde8533187048314683c30fb288b610",
+    "diffHash": "c1365f619e510996297d38efbeed84a8923229235d2336d14af14d1ee5f9982d"
   },
-  "finalReviewedDiffHash": "0000000000000000000000000000000000000000000000000000000000000000"
+  "finalReviewedDiffHash": "c1365f619e510996297d38efbeed84a8923229235d2336d14af14d1ee5f9982d"
 }

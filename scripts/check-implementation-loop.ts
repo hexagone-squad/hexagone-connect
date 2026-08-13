@@ -508,6 +508,7 @@ function gitContext(): { changedFiles: string[]; diffHash: string } | undefined 
       .split('\n')
       .filter(Boolean);
     const diff = execFileSync('git', ['diff', '--binary', `${base}...HEAD`], {
+      encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
     });
     return { changedFiles, diffHash: sha256(canonicalDiff(diff)) };
