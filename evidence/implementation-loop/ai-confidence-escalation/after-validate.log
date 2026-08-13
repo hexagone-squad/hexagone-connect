@@ -1,0 +1,216 @@
+
+> hexagone-connect@0.1.0 validate /home/runner/work/hexagone-connect/hexagone-connect
+> tsx scripts/run-ci.ts
+
+
+=== format:check ===
+
+> hexagone-connect@0.1.0 format:check /home/runner/work/hexagone-connect/hexagone-connect
+> prettier --check AGENTS.md CLAUDE.md .github .prettierrc.json docs/methodology evidence/implementation-loop policies scripts tests package.json pnpm-workspace.yaml tsconfig.json vitest.config.ts eslint.config.mjs apps/**/package.json services/**/package.json packages/**/package.json
+
+Checking formatting...
+All matched files use Prettier code style!
+
+=== lint ===
+
+> hexagone-connect@0.1.0 lint /home/runner/work/hexagone-connect/hexagone-connect
+> eslint .
+
+
+=== typecheck ===
+
+> hexagone-connect@0.1.0 typecheck /home/runner/work/hexagone-connect/hexagone-connect
+> tsc --noEmit
+
+
+=== check:typesafety ===
+
+> hexagone-connect@0.1.0 check:typesafety /home/runner/work/hexagone-connect/hexagone-connect
+> tsx scripts/check-governance.ts types
+
+PASS type-safety escapes: 26 production TypeScript files inspected
+
+=== build ===
+
+> hexagone-connect@0.1.0 build /home/runner/work/hexagone-connect/hexagone-connect
+> pnpm -r --if-present run build
+
+Scope: 16 of 17 workspace projects
+services/ai-orchestration build$ tsc --noEmit
+services/catalog-discovery build$ tsc --noEmit
+services/commercial build$ tsc --noEmit
+services/engagement build$ tsc --noEmit
+services/commercial build: Done
+services/identity-tenant build$ tsc --noEmit
+services/catalog-discovery build: Done
+services/partner-network build$ tsc --noEmit
+services/engagement build: Done
+services/reporting-admin build$ tsc --noEmit
+services/ai-orchestration build: Done
+services/work-management build$ tsc --noEmit
+services/identity-tenant build: Done
+services/partner-network build: Done
+services/reporting-admin build: Done
+services/work-management build: Done
+
+=== test:unit ===
+
+> hexagone-connect@0.1.0 test:unit /home/runner/work/hexagone-connect/hexagone-connect
+> vitest run --exclude tests/architecture/** --exclude tests/contracts/** --exclude tests/integration/** --exclude tests/e2e/**
+
+
+[1m[46m RUN [49m[22m [36mv3.2.7 [39m[90m/home/runner/work/hexagone-connect/hexagone-connect[39m
+
+ [32m✓[39m services/ai-orchestration/evaluations/inspection-assistant.evaluation.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m services/ai-orchestration/test/inspection-assistant.contract.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/governance/implementation-loop.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+ [32m✓[39m tests/governance/setup-contract.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/governance/documentation-system.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m services/work-management/test/create-work-request.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m services/identity-tenant/test/authorization.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 4[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m7 passed[39m[22m[90m (7)[39m
+[2m      Tests [22m [1m[32m34 passed[39m[22m[90m (34)[39m
+[2m   Start at [22m 19:24:15
+[2m   Duration [22m 1.27s[2m (transform 296ms, setup 0ms, collect 506ms, tests 86ms, environment 2ms, prepare 967ms)[22m
+
+
+=== test:contracts ===
+
+> hexagone-connect@0.1.0 test:contracts /home/runner/work/hexagone-connect/hexagone-connect
+> vitest run tests/contracts
+
+
+[1m[46m RUN [49m[22m [36mv3.2.7 [39m[90m/home/runner/work/hexagone-connect/hexagone-connect[39m
+
+ [32m✓[39m tests/contracts/work-request-created.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 4[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m   Start at [22m 19:24:17
+[2m   Duration [22m 359ms[2m (transform 40ms, setup 0ms, collect 27ms, tests 4ms, environment 0ms, prepare 77ms)[22m
+
+
+=== check:contracts ===
+
+> hexagone-connect@0.1.0 check:contracts /home/runner/work/hexagone-connect/hexagone-connect
+> tsx scripts/check-governance.ts contracts
+
+PASS contract schemas: 1 event schemas and 1 OpenAPI documents validated
+
+=== test:architecture ===
+
+> hexagone-connect@0.1.0 test:architecture /home/runner/work/hexagone-connect/hexagone-connect
+> vitest run tests/architecture
+
+
+[1m[46m RUN [49m[22m [36mv3.2.7 [39m[90m/home/runner/work/hexagone-connect/hexagone-connect[39m
+
+ [32m✓[39m tests/architecture/dependency-direction.test.ts [2m([22m[2m1 test[22m[2m)[22m[33m 692[2mms[22m[39m
+   [33m[2m✓[22m[39m architecture dependency direction[2m > [22menforces the repository boundary policy [33m 690[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m   Start at [22m 19:24:19
+[2m   Duration [22m 1.02s[2m (transform 39ms, setup 0ms, collect 22ms, tests 692ms, environment 0ms, prepare 101ms)[22m
+
+
+=== test:integration ===
+
+> hexagone-connect@0.1.0 test:integration /home/runner/work/hexagone-connect/hexagone-connect
+> tsx scripts/run-test-stage.ts integration
+
+NOT APPLICABLE integration tests: no integration specifications found
+
+=== test:e2e ===
+
+> hexagone-connect@0.1.0 test:e2e /home/runner/work/hexagone-connect/hexagone-connect
+> tsx scripts/run-test-stage.ts e2e
+
+NOT APPLICABLE e2e: no UI components or .e2e.spec.ts specifications found
+
+=== test:a11y ===
+
+> hexagone-connect@0.1.0 test:a11y /home/runner/work/hexagone-connect/hexagone-connect
+> tsx scripts/run-test-stage.ts a11y
+
+NOT APPLICABLE a11y: no UI components or .a11y.spec.ts specifications found
+
+=== check:test-mapping ===
+
+> hexagone-connect@0.1.0 check:test-mapping /home/runner/work/hexagone-connect/hexagone-connect
+> tsx scripts/check-test-mapping.ts
+
+NOT APPLICABLE HC-TEST-001 mapping: Git diff is unavailable
+
+=== check:implementation-loop ===
+
+> hexagone-connect@0.1.0 check:implementation-loop /home/runner/work/hexagone-connect/hexagone-connect
+> tsx scripts/check-implementation-loop.ts
+
+NOT APPLICABLE implementation loop: Git metadata and manifest are unavailable
+
+=== check:secrets ===
+
+> hexagone-connect@0.1.0 check:secrets /home/runner/work/hexagone-connect/hexagone-connect
+> tsx scripts/check-governance.ts security
+
+PASS secret patterns: 123 files inspected
+
+=== check:licenses ===
+
+> hexagone-connect@0.1.0 check:licenses /home/runner/work/hexagone-connect/hexagone-connect
+> pnpm licenses list --prod --json | tsx scripts/check-licenses.ts
+
+PASS license policy: no production dependency entries found
+
+=== check:docs ===
+
+> hexagone-connect@0.1.0 check:docs /home/runner/work/hexagone-connect/hexagone-connect
+> tsx scripts/check-governance.ts docs
+
+PASS documentation references: 20 Markdown files checked
+
+=== check:localization ===
+
+> hexagone-connect@0.1.0 check:localization /home/runner/work/hexagone-connect/hexagone-connect
+> tsx scripts/check-governance.ts localization
+
+NOT APPLICABLE localization: no UI component files found
+
+=== check:governance ===
+
+> hexagone-connect@0.1.0 check:governance /home/runner/work/hexagone-connect/hexagone-connect
+> tsx scripts/check-governance.ts policy
+
+PASS governance policy: 17 unique rule identifiers
+
+=== check:budgets ===
+
+> hexagone-connect@0.1.0 check:budgets /home/runner/work/hexagone-connect/hexagone-connect
+> tsx scripts/check-governance.ts budgets
+
+NOT APPLICABLE artifact budgets: no build artifacts found
+
+=== test:ai ===
+
+> hexagone-connect@0.1.0 test:ai /home/runner/work/hexagone-connect/hexagone-connect
+> tsx scripts/run-test-stage.ts ai
+
+
+> @hexagone/ai-orchestration@0.1.0 evaluate /home/runner/work/hexagone-connect/hexagone-connect/services/ai-orchestration
+> vitest run evaluations
+
+
+[1m[46m RUN [49m[22m [36mv3.2.7 [39m[90m/home/runner/work/hexagone-connect/hexagone-connect/services/ai-orchestration[39m
+
+ [32m✓[39m evaluations/inspection-assistant.evaluation.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m   Start at [22m 19:24:29
+[2m   Duration [22m 311ms[2m (transform 44ms, setup 0ms, collect 42ms, tests 5ms, environment 0ms, prepare 63ms)[22m
+
+
+PASS validate complete deterministic gate
+EXIT_CODE=0

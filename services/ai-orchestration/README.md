@@ -17,6 +17,7 @@ Owns prompts, RAG/retrieval, agents, MCP/tool integration, provider-neutral mode
 - `runInspectionAssistant` enforces tenant access and retrieval tenant-boundary checks.
 - Output schema checks require answer text, citations, and confidence in `[0, 1]`.
 - Consequential action categories are blocked unless `humanApprovalToken` is present.
+- Answers below the versioned `humanReviewConfidenceThreshold` in `ai/evaluations/inspection-assistant.v1.json` are escalated for human review.
 - Model failure paths fall back to a deterministic response and force human review.
 - All execution paths emit an AI audit record payload.
 

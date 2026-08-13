@@ -1,4 +1,7 @@
 import type { InspectionAssistantInput, InspectionAssistantOutput } from "../../../ai/agents/inspection-assistant.js";
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 export interface AiPrincipal {
   userId: string;
@@ -40,6 +43,26 @@ const approvalRequiredActions = new Set<ConsequentialAction>([
   "commercialDecision"
 ]);
 
+export const humanReviewConfidenceThreshold = loadHumanReviewConfidenceThreshold();
+
+function loadHumanReviewConfidenceThreshold(): number {
+  const policyPath = resolve(
+    dirname(fileURLToPath(import.meta.url)),
+    "../../../ai/evaluations/inspection-assistant.v1.json"
+  );
+  const policy: unknown = JSON.parse(readFileSync(policyPath, "utf8"));
+  const threshold =
+    typeof policy === "object" && policy !== null
+      ? (policy as Record<string, unknown>).humanReviewConfidenceThreshold
+      : undefined;
+
+  if (typeof threshold !== "number" || threshold < 0 || threshold > 1) {
+    throw new Error("Evaluation policy must define humanReviewConfidenceThreshold between 0 and 1");
+  }
+
+  return threshold;
+}
+
 export async function runInspectionAssistant(
   request: RunInspectionAssistantRequest,
   dependencies: InspectionAssistantDependencies
@@ -56,8 +79,6 @@ export async function runInspectionAssistant(
   });
   assertTenantBoundary(citations, request.tenantId);
 
-  const requiresHumanReview = false;
-
   let output: InspectionAssistantOutput;
   let usedFallback = false;
 
@@ -67,7 +88,8 @@ export async function runInspectionAssistant(
       answer: generation.answer,
       citations: citations.map((citation) => citation.sourceId),
       confidence: generation.confidence,
-      requiresHumanReview
+      // Low-confidence answers are escalated against the versioned evaluation threshold.
+      requiresHumanReview: generation.confidence < humanReviewConfidenceThreshold
     };
   } catch {
     // Provide a deterministic non-AI fallback and force human review on degraded paths.

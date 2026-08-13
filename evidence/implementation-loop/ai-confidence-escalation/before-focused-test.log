@@ -1,0 +1,59 @@
+
+[1m[46m RUN [49m[22m [36mv3.2.7 [39m[90m/home/runner/work/hexagone-connect/hexagone-connect[39m
+
+ [31m❯[39m services/ai-orchestration/test/inspection-assistant.contract.test.ts [2m([22m[2m6 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 14[2mms[22m[39m
+   [32m✓[39m inspection assistant contract[2m > [22mrejects retrieval results from another tenant[32m 2[2mms[22m[39m
+   [32m✓[39m inspection assistant contract[2m > [22mblocks consequential actions without human approval token[32m 0[2mms[22m[39m
+   [32m✓[39m inspection assistant contract[2m > [22mallows consequential actions when human approval token is provided[32m 3[2mms[22m[39m
+   [32m✓[39m inspection assistant contract[2m > [22muses fallback and escalates to human review when model generation fails[32m 0[2mms[22m[39m
+[31m   [31m×[31m inspection assistant contract[2m > [22mescalates to human review when confidence is below the versioned threshold[39m[32m 6[2mms[22m[39m
+[31m     → expected false to be true // Object.is equality[39m
+[31m   [31m×[31m inspection assistant contract[2m > [22mdoes not escalate when confidence equals the versioned threshold[39m[32m 1[2mms[22m[39m
+[31m     → Schema validation failed: confidence must be between 0 and 1[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 2 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m services/ai-orchestration/test/inspection-assistant.contract.test.ts[2m > [22minspection assistant contract[2m > [22mescalates to human review when confidence is below the versioned threshold
+[31m[1mAssertionError[22m: expected false to be true // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+[36m [2m❯[22m services/ai-orchestration/test/inspection-assistant.contract.test.ts:[2m106:40[22m[39m
+    [90m104| [39m    )[33m;[39m
+    [90m105| [39m
+    [90m106| [39m    [34mexpect[39m(output[33m.[39mrequiresHumanReview)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+    [90m   | [39m                                       [31m^[39m
+    [90m107| [39m    [34mexpect[39m(recordAudit)[33m.[39m[34mtoHaveBeenCalledWith[39m(
+    [90m108| [39m      expect.objectContaining({ requiresHumanReview: true, usedFallbac…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m services/ai-orchestration/test/inspection-assistant.contract.test.ts[2m > [22minspection assistant contract[2m > [22mdoes not escalate when confidence equals the versioned threshold
+[31m[1mError[22m: Schema validation failed: confidence must be between 0 and 1[39m
+[36m [2m❯[22m validateOutput services/ai-orchestration/src/inspection-assistant.ts:[2m124:11[22m[39m
+    [90m122| [39m
+    [90m123| [39m  if (typeof output.confidence !== "number" || output.confidence < 0 |…
+    [90m124| [39m    throw new Error("Schema validation failed: confidence must be betw…
+    [90m   | [39m          [31m^[39m
+    [90m125| [39m  }
+    [90m126| [39m}
+[90m [2m❯[22m runInspectionAssistant services/ai-orchestration/src/inspection-assistant.ts:[2m83:3[22m[39m
+[90m [2m❯[22m services/ai-orchestration/test/inspection-assistant.contract.test.ts:[2m113:20[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m4 passed[39m[22m[90m (6)[39m
+[2m   Start at [22m 19:22:46
+[2m   Duration [22m 330ms[2m (transform 45ms, setup 0ms, collect 43ms, tests 14ms, environment 0ms, prepare 70ms)[22m
+
+
+::error file=/home/runner/work/hexagone-connect/hexagone-connect/services/ai-orchestration/test/inspection-assistant.contract.test.ts,title=services/ai-orchestration/test/inspection-assistant.contract.test.ts > inspection assistant contract > escalates to human review when confidence is below the versioned threshold,line=106,column=40::AssertionError: expected false to be true // Object.is equality%0A%0A- Expected%0A+ Received%0A%0A- true%0A+ false%0A%0A ❯ services/ai-orchestration/test/inspection-assistant.contract.test.ts:106:40%0A%0A
+
+::error file=/home/runner/work/hexagone-connect/hexagone-connect/services/ai-orchestration/src/inspection-assistant.ts,title=services/ai-orchestration/test/inspection-assistant.contract.test.ts > inspection assistant contract > does not escalate when confidence equals the versioned threshold,line=124,column=11::Error: Schema validation failed: confidence must be between 0 and 1%0A ❯ validateOutput services/ai-orchestration/src/inspection-assistant.ts:124:11%0A ❯ runInspectionAssistant services/ai-orchestration/src/inspection-assistant.ts:83:3%0A ❯ services/ai-orchestration/test/inspection-assistant.contract.test.ts:113:20%0A%0A
+EXIT_CODE=1

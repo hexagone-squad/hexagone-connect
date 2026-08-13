@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { runInspectionAssistant } from "../src/inspection-assistant.js";
+import { humanReviewConfidenceThreshold, runInspectionAssistant } from "../src/inspection-assistant.js";
 
 const currentFile = fileURLToPath(import.meta.url);
 const currentDir = dirname(currentFile);
@@ -13,6 +13,7 @@ const evaluationPolicy = JSON.parse(
     groundedness: number;
     schemaCompliance: number;
   };
+  humanReviewConfidenceThreshold: number;
 };
 
 describe("inspection assistant evaluation", () => {
@@ -56,5 +57,30 @@ describe("inspection assistant evaluation", () => {
         }
       )
     ).rejects.toThrow("Grounded answer requires at least one citation");
+  });
+
+  it("escalates low-confidence answers for human review", async () => {
+    const output = await runInspectionAssistant(
+      {
+        tenantId: "tenant-1",
+        inspectionId: "insp-1",
+        question: "Is remediation required?",
+        principal: { userId: "u-1", tenantIds: ["tenant-1"] }
+      },
+      {
+        retrieveCitations: async () => [{ sourceId: "doc-1", tenantId: "tenant-1", excerpt: "finding" }],
+        generateAnswer: async () => ({
+          answer: "Uncertain.",
+          confidence: evaluationPolicy.humanReviewConfidenceThreshold - 0.1
+        }),
+        recordAudit: async () => undefined
+      }
+    );
+
+    expect(output.requiresHumanReview).toBe(true);
+  });
+
+  it("uses the versioned evaluation threshold as the escalation boundary", () => {
+    expect(humanReviewConfidenceThreshold).toBe(evaluationPolicy.humanReviewConfidenceThreshold);
   });
 });

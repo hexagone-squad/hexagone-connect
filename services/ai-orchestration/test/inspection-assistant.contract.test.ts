@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { runInspectionAssistant } from "../src/inspection-assistant.js";
+import { humanReviewConfidenceThreshold, runInspectionAssistant } from "../src/inspection-assistant.js";
 
 describe("inspection assistant contract", () => {
   it("rejects retrieval results from another tenant", async () => {
@@ -84,5 +84,46 @@ describe("inspection assistant contract", () => {
     expect(output.answer).toContain("Escalated for human review");
     expect(output.requiresHumanReview).toBe(true);
     expect(output.confidence).toBe(0);
+  });
+
+  it("escalates to human review when confidence is below the versioned threshold", async () => {
+    const recordAudit = vi.fn(async () => undefined);
+
+    const output = await runInspectionAssistant(
+      {
+        tenantId: "tenant-1",
+        inspectionId: "insp-1",
+        question: "Is the roof compliant?",
+        principal: { userId: "u-1", tenantIds: ["tenant-1"] }
+      },
+      {
+        retrieveCitations: async () => [{ sourceId: "doc-1", tenantId: "tenant-1", excerpt: "partial evidence" }],
+        generateAnswer: async () => ({ answer: "Probably compliant.", confidence: 0.5 }),
+        recordAudit
+      }
+    );
+
+    expect(output.requiresHumanReview).toBe(true);
+    expect(recordAudit).toHaveBeenCalledWith(
+      expect.objectContaining({ requiresHumanReview: true, usedFallback: false })
+    );
+  });
+
+  it("does not escalate when confidence equals the versioned threshold", async () => {
+    const output = await runInspectionAssistant(
+      {
+        tenantId: "tenant-1",
+        inspectionId: "insp-1",
+        question: "Is the roof compliant?",
+        principal: { userId: "u-1", tenantIds: ["tenant-1"] }
+      },
+      {
+        retrieveCitations: async () => [{ sourceId: "doc-1", tenantId: "tenant-1", excerpt: "evidence" }],
+        generateAnswer: async () => ({ answer: "Compliant.", confidence: humanReviewConfidenceThreshold }),
+        recordAudit: async () => undefined
+      }
+    );
+
+    expect(output.requiresHumanReview).toBe(false);
   });
 });

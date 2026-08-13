@@ -1,2 +1,2 @@
 export const serviceName = "ai-orchestration" as const;
-export { runInspectionAssistant } from "./inspection-assistant.js";
+export { humanReviewConfidenceThreshold, runInspectionAssistant } from "./inspection-assistant.js";

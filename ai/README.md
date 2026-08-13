@@ -7,6 +7,7 @@ The AI platform owns prompts, RAG/retrieval, agents, MCP/tool integration, model
 - Tenant-scoped retrieval only (cross-tenant citations are rejected)
 - Grounded responses require at least one citation
 - Consequential actions are blocked unless a human-approval token is provided
+- Low-confidence answers are escalated for human review against a versioned threshold
 - Every response path writes an AI audit record
 - Degraded provider paths use deterministic fallback and force human review
 
