@@ -215,17 +215,17 @@ Reuse, refactor, replace, defer, or investigate further — and why.
 - Evidence still needed:
 ```
 
-## 8. Suggested five-day readiness sprint
+## 8. Suggested 2–3 working-day readiness cycle
+
+This is a flexible target for a small practice POC, not a fixed delivery deadline.
 
 | Day | Team activity | Expected output |
 |---|---|---|
-| 1 | Repository orientation and POC definition | Problem, scope, success criteria, assumptions, applicable rules |
-| 2 | Design and focused test/evaluation setup | Small design note and initial evidence |
-| 3 | Smallest implementation | Runnable local slice using synthetic data |
-| 4 | Verification and peer review | Exact results, findings, fixes, limitations |
-| 5 | Demonstration and recommendation | Demo, draft PR, recommendation, open-decision list |
+| 1 | Repository orientation, POC definition, and small design | Problem, scope, success criteria, assumptions, applicable rules |
+| 2 | Implement and test the smallest useful slice | Runnable local POC, focused tests or evaluations, and initial evidence |
+| 3, when needed | Verify, peer review, demonstrate, and recommend | Exact results, review findings, draft PR, recommendation, and open decisions |
 
-Keep scope small enough to complete the Implementation Loop. If a POC cannot be completed in five days, reduce the question rather than bypassing evidence.
+Keep the question narrow enough to finish in two or three working days. Team members contributing part-time may adjust the calendar duration, but must not skip testing, security, evidence, or review.
 
 ## 9. Definition of done
 
