@@ -18,6 +18,7 @@ Use this page as the canonical navigation map. Prefer updating these documents o
 - [Engineering constitution](methodology/CONSTITUTION.md) — binding `HC-*` and `SC-*` rules
 - [Verification contract](methodology/verification.md) — validation gate and evidence rules
 - [Implementation Loop](foundation/implementation-loop.md) — required workflow for non-trivial changes
+- [Engineering readiness and POC contribution guide](foundation/engineering-readiness-poc-guide.md) — pre-requirements team practice, POC charters, and review expectations
 - [Team ownership](TEAM_OWNERSHIP.md) — profile-based ownership model used by CODEOWNERS
 - [Decision records](adr/) — accepted architecture decisions and the ADR template
 
