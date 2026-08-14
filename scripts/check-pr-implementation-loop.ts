@@ -122,8 +122,11 @@ export function validatePrEvidence(
       fail(`${step} has an unsupported status`);
     }
     const recordedAt = timestamp(record.timestamp, `${step}.timestamp`);
+    const governanceOnlyChange =
+      evidence.changeType === 'governance' &&
+      !context.changedFiles.some((file) => /^(apps|services|packages|database)\//.test(file));
     const governanceEvidenceExemption =
-      evidence.changeType === 'governance' && GOVERNANCE_EVIDENCE_EXEMPTIONS.has(step);
+      governanceOnlyChange && GOVERNANCE_EVIDENCE_EXEMPTIONS.has(step);
     if (
       record.status === 'not applicable' &&
       (!isTrivial || !TRIVIALLY_EXEMPTIBLE_STEPS.has(step)) &&
