@@ -28,6 +28,7 @@ const TRIVIALLY_EXEMPTIBLE_STEPS = new Set([
   'diff-audit',
   'automated-review',
 ]);
+const GOVERNANCE_EVIDENCE_EXEMPTIONS = new Set(['tests', 'focused-failure', 'before-evidence']);
 
 type LoopStep = (typeof LOOP_STEPS)[number];
 type StepEvidence = {
@@ -121,9 +122,17 @@ export function validatePrEvidence(
       fail(`${step} has an unsupported status`);
     }
     const recordedAt = timestamp(record.timestamp, `${step}.timestamp`);
+    const governanceOnlyChange =
+      evidence.changeType === 'governance' &&
+      !context.changedFiles.some((file) =>
+        /^(apps|services|packages|database|contracts|ai|infrastructure)\//.test(file),
+      );
+    const governanceEvidenceExemption =
+      governanceOnlyChange && GOVERNANCE_EVIDENCE_EXEMPTIONS.has(step);
     if (
       record.status === 'not applicable' &&
-      (!isTrivial || !TRIVIALLY_EXEMPTIBLE_STEPS.has(step))
+      (!isTrivial || !TRIVIALLY_EXEMPTIBLE_STEPS.has(step)) &&
+      !governanceEvidenceExemption
     ) {
       fail(`${step} cannot be exempted for this change`);
     }
