@@ -32,6 +32,58 @@ function fail(message: string): never {
   throw new Error(`BLOCKED ${message}`);
 }
 
+const decisionReadinessHeaders = [
+  'Decision ID',
+  'Current evidence',
+  'Missing business input',
+  'Options',
+  'Decision owner',
+  'Required POC',
+  'Status',
+  'Review date',
+] as const;
+
+export function validateDecisionReadinessRegister(content: string): void {
+  const lines = content.split('\n');
+  const headerLineIndex = lines.findIndex(
+    (line) =>
+      line.trim().startsWith('|') &&
+      decisionReadinessHeaders.every((header) => line.includes(header)),
+  );
+  if (headerLineIndex < 0) {
+    fail('HC-DOC-001 decision-readiness register is missing the required table header');
+  }
+
+  const rows: string[][] = [];
+  for (let i = headerLineIndex + 2; i < lines.length; i += 1) {
+    const trimmed = lines[i].trim();
+    if (!trimmed) break;
+    if (!trimmed.startsWith('|')) break;
+    const cells = trimmed
+      .split('|')
+      .slice(1, -1)
+      .map((cell) => cell.trim());
+    if (cells.length !== decisionReadinessHeaders.length) {
+      fail('HC-DOC-001 decision-readiness register row does not match required column count');
+    }
+    rows.push(cells);
+  }
+
+  if (rows.length === 0) {
+    fail('HC-DOC-001 decision-readiness register must include at least one decision entry');
+  }
+
+  for (const [index, row] of rows.entries()) {
+    row.forEach((value, columnIndex) => {
+      if (!value || value === '-') {
+        fail(
+          `HC-DOC-001 decision-readiness register has an incomplete value at row ${index + 1}, column '${decisionReadinessHeaders[columnIndex]}'`,
+        );
+      }
+    });
+  }
+}
+
 function checkPolicy(): void {
   const file = 'docs/methodology/CONSTITUTION.md';
   const content = text(file);
@@ -282,6 +334,13 @@ function checkDocs(): void {
   if (!text('docs/README.md').includes('methodology/CONSTITUTION.md')) {
     fail('HC-DOC-001 documentation index does not register the canonical constitution');
   }
+
+  const decisionRegisterPath = 'docs/foundation/decision-readiness-register.md';
+  if (!existsSync(resolve(root, decisionRegisterPath))) {
+    fail(`HC-DOC-001 missing required decision register: ${decisionRegisterPath}`);
+  }
+  validateDecisionReadinessRegister(text(decisionRegisterPath));
+
   console.log(`PASS documentation references: ${markdownFiles.length} Markdown files checked`);
 }
 
@@ -350,34 +409,36 @@ function checkSecurity(): void {
   console.log(`PASS secret patterns: ${candidateFiles.length} files inspected`);
 }
 
-const command = process.argv[2];
-switch (command) {
-  case 'policy':
-    checkPolicy();
-    break;
-  case 'architecture':
-    checkArchitecture();
-    break;
-  case 'contracts':
-    checkContracts();
-    break;
-  case 'types':
-    checkTypeSafety();
-    break;
-  case 'docs':
-    checkDocs();
-    break;
-  case 'localization':
-    checkLocalization();
-    break;
-  case 'budgets':
-    checkBudgets();
-    break;
-  case 'security':
-    checkSecurity();
-    break;
-  default:
-    fail(
-      'usage: tsx scripts/check-governance.ts <policy|architecture|contracts|types|docs|localization|budgets|security>',
-    );
+if (process.argv[1]?.endsWith('check-governance.ts')) {
+  const command = process.argv[2];
+  switch (command) {
+    case 'policy':
+      checkPolicy();
+      break;
+    case 'architecture':
+      checkArchitecture();
+      break;
+    case 'contracts':
+      checkContracts();
+      break;
+    case 'types':
+      checkTypeSafety();
+      break;
+    case 'docs':
+      checkDocs();
+      break;
+    case 'localization':
+      checkLocalization();
+      break;
+    case 'budgets':
+      checkBudgets();
+      break;
+    case 'security':
+      checkSecurity();
+      break;
+    default:
+      fail(
+        'usage: tsx scripts/check-governance.ts <policy|architecture|contracts|types|docs|localization|budgets|security>',
+      );
+  }
 }

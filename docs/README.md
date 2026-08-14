@@ -19,6 +19,9 @@ Use this page as the canonical navigation map. Prefer updating these documents o
 - [Verification contract](methodology/verification.md) — validation gate and evidence rules
 - [Implementation Loop](foundation/implementation-loop.md) — required workflow for non-trivial changes
 - [Engineering readiness and POC contribution guide](foundation/engineering-readiness-poc-guide.md) — pre-requirements team practice, POC charters, and review expectations
+- [Decision readiness register (POC)](foundation/decision-readiness-register.md) — open architecture and business decisions with evidence and owners
+- [Tenant-boundary scenario matrix (POC)](foundation/tenant-boundary-scenario-matrix.md) — synthetic allow/deny tenant scenarios and expected audit evidence
+- [IT architecture review agenda (POC)](foundation/it-architecture-review-agenda.md) — review cadence and outputs for unresolved decisions
 - [Team ownership](TEAM_OWNERSHIP.md) — profile-based ownership model used by CODEOWNERS
 - [Decision records](adr/) — accepted architecture decisions and the ADR template
 
