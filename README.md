@@ -136,6 +136,83 @@ Treat AI as a force multiplier for repo comprehension and implementation quality
 - [Glossary](docs/glossary.md)
 - [Decision records](docs/adr/)
 
+## 5-Minute Onboarding: AI-First Loop
+
+Default path: run the workflow first, then open only the doc that unblocks the next gate.
+
+1. Start with `/wow` in Copilot Chat (local equivalent shown below):
+
+```bash
+pnpm run workflow:wow
+```
+
+2. Follow the next actionable step from `/wow` output.
+3. For non-trivial changes, complete both Implementation Loop proof sections in [.github/pull_request_template.md](.github/pull_request_template.md):
+	- human-readable summary table for reviewers
+	- machine-readable `implementation-loop-evidence` JSON comment for remote validation
+4. Ensure the PR passes remote `pnpm check:implementation-loop` and retains the proof artifact.
+
+Eligible AI workflow commands follow the same convention: use the slash command first, then use a local script only when you are outside chat.
+
+| Workflow goal | Preferred in chat | Local equivalent |
+| --- | --- | --- |
+| Course-correct to implementation loop | `/wow` | `pnpm run workflow:wow` |
+| Run deterministic validation chain | `/verify` | `pnpm run workflow:verify` |
+| Run instruction evaluation | `/eval-claude-md` | `pnpm run workflow:eval-claude-md` |
+| Branch diff audit | `/audit` | Chat-first (no local script contract) |
+| Local PR surface review | `/review-pr` | Chat-first (no local script contract) |
+| Propose constitutional amendment | `/constitute` | Chat-first (no local script contract) |
+| Promote defect to permanent rule decision | `/reflect` | Chat-first (no local script contract) |
+
+Open references only when blocked:
+
+- Loop stage requirement unclear: [docs/foundation/implementation-loop.md](docs/foundation/implementation-loop.md)
+- `/wow` behavior or flags unclear: [docs/governance/agent-workflows.md](docs/governance/agent-workflows.md)
+- Evidence format unclear: [.github/pull_request_template.md](.github/pull_request_template.md)
+
+Quick references:
+
+- Development-loop usage: [docs/development.md](docs/development.md)
+- Governance expectations: [docs/governance.md](docs/governance.md)
+- PR workflow command catalog: [docs/governance/agent-workflows.md](docs/governance/agent-workflows.md)
+
+### Team Prompt Pack
+
+Use these prompts in Copilot Chat on day one so onboarding is consistent and evidence-driven.
+
+Onboarding prompt:
+
+```text
+Map this repo for me and prepare my onboarding checklist.
+Include:
+- which HC-* constraints apply most often
+- which docs are canonical for implementation loop and workflow commands
+- which checks will be run automatically by the workflow and which require human evidence
+- how to complete Implementation Loop proof in the PR template
+Then run /wow and tell me the next required step.
+```
+
+Complex-task kickoff prompt:
+
+```text
+I am starting a non-trivial task.
+Create a plan using the canonical implementation loop, identify applicable HC-* and SC-* rules,
+list required evidence, and propose the smallest independently testable change.
+Before any edits, show:
+- focused test to run first (or explicit N/A reason)
+- BEFORE evidence to capture
+- which deterministic validations you will run automatically and when
+Then run /wow and report blockers and next actionable step.
+```
+
+Execution expectations for complex work:
+
+1. Start with `/wow` (or `pnpm run workflow:wow` when running outside chat).
+2. Let the AI workflow run routine deterministic checks automatically.
+3. If `/wow` reports blocked or pending, resolve exactly the next gate before coding further.
+4. Keep PR evidence current in [.github/pull_request_template.md](.github/pull_request_template.md).
+5. Do not treat manual or unexecuted checks as passed.
+
 ## Project Maturity
 
 This is initial setup. The repository can install, typecheck, lint, test, validate contracts, scan for secret patterns, and run governance checks. Most app and service workspaces are named boundaries only. Treat production-readiness, deployment, observability, and external integrations as deferred until there is executable runtime behavior and an accepted ADR.
