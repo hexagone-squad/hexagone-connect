@@ -28,7 +28,7 @@ const TRIVIALLY_EXEMPTIBLE_STEPS = new Set([
   'diff-audit',
   'automated-review',
 ]);
-const GOVERNANCE_EVIDENCE_EXEMPTIONS = new Set(['focused-failure', 'before-evidence']);
+const GOVERNANCE_EVIDENCE_EXEMPTIONS = new Set(['tests', 'focused-failure', 'before-evidence']);
 
 type LoopStep = (typeof LOOP_STEPS)[number];
 type StepEvidence = {

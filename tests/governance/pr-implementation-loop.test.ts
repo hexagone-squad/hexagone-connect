@@ -78,6 +78,7 @@ describe('PR implementation-loop evidence', () => {
 
   it('rejects a non-trivial exemption', () => {
     const item = evidence();
+    item.changeType = 'feature';
     item.steps.tests.status = 'not applicable';
     expect(() =>
       validatePrEvidence(item, {
@@ -89,6 +90,7 @@ describe('PR implementation-loop evidence', () => {
 
   it('accepts disclosed pre-implementation evidence gaps for governance changes', () => {
     const item = evidence();
+    item.steps.tests.status = 'not applicable';
     item.steps['focused-failure'].status = 'not applicable';
     item.steps['before-evidence'].status = 'not applicable';
     expect(() =>
