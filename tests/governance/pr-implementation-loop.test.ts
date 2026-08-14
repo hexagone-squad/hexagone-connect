@@ -86,4 +86,16 @@ describe('PR implementation-loop evidence', () => {
       }),
     ).toThrow('cannot be exempted');
   });
+
+  it('accepts disclosed pre-implementation evidence gaps for governance changes', () => {
+    const item = evidence();
+    item.steps['focused-failure'].status = 'not applicable';
+    item.steps['before-evidence'].status = 'not applicable';
+    expect(() =>
+      validatePrEvidence(item, {
+        changedFiles: ['scripts/check-pr-implementation-loop.ts'],
+        diffHash: 'final-diff-hash',
+      }),
+    ).not.toThrow();
+  });
 });
