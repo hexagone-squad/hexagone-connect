@@ -43,7 +43,7 @@ Every contribution must follow these rules:
 
 Each engineer uses the same workflow:
 
-1. **Orient:** Read the root README, documentation index, constitution, ownership guide, applicable path instructions, and relevant code.
+1. **Orient and prove the gap:** Read the root README, documentation index, constitution, ownership guide, applicable path instructions, and relevant code. Search `main` and link the files that already implement related behavior. The POC may proceed only when the missing capability is stated clearly.
 2. **Define:** Write a one-paragraph problem statement, success criteria, assumptions, exclusions, and applicable `HC-*` or `SC-*` rules.
 3. **Design:** Identify the smallest boundary to exercise. Record alternatives and why the POC is worth running.
 4. **Implement:** Create the smallest runnable slice on a focused branch. Keep domain logic separate from adapters and vendor-specific code.
@@ -56,6 +56,7 @@ Each engineer uses the same workflow:
 
 Every POC must include:
 
+- a baseline-gap statement listing what already exists on `main`, with repository links, and what remains unimplemented;
 - a README with purpose, scope, assumptions, setup, execution, cleanup, and limitations;
 - one runnable demonstration or automated test;
 - architecture or data-flow notes when a boundary is introduced;
@@ -66,105 +67,128 @@ Every POC must include:
 
 ## 5. Role-based POC charters
 
+### Repository baseline checked before assignment
+
+The following capabilities already exist and must be reused rather than rebuilt:
+
+| Area | Existing baseline | Assigned gap |
+|---|---|---|
+| Architecture | ADRs and dependency-direction enforcement | Open-decision readiness register and tenant scenario matrix |
+| Platform | PR quality gates, secret/dependency/source scanning, Dockerfile, local PostgreSQL, observability types | Container hardening, image/SBOM evidence, and tested synthetic database restore |
+| Product | Work-management domain/application logic, OpenAPI contract, tenant authorization helper, app shells | First runnable HTTP adapter and first operator-facing workflow |
+| AI | Tenant isolation, citation requirement, human-approval gate, deterministic fallback, audit record, provider-outage tests | Read-only MCP-style tool boundary and missing tool/prompt abuse evaluations |
+
+If `main` changes before a POC starts, the contributor must repeat the gap check. If the assigned gap has since been implemented, stop and propose a different extension to the Technology, Product & Architecture Lead.
+
 ### 5.1 Celestin Mbuyamba — Technology, Product & Architecture Lead
 
 **Existing ownership profile:** Tech Lead / Architect
 
-**POC:** Technical decision register and architecture fitness checks.
+**POC:** Open-decision readiness register and tenant-boundary scenario matrix.
 
-**Objective:** Establish a lightweight, evidence-based way to manage decisions without finalizing choices before requirements are known.
+**Reuse from the repository:** Existing ADRs, architecture documentation, dependency-direction test, governance checks, and Implementation Loop evidence.
 
-**Work items:**
+**Objective:** Make unresolved decisions and missing business inputs visible without recreating existing architecture rules or prematurely approving a solution.
 
-- Create a proposed decision register covering tenant definition, deployment model, cloud/runtime, identity, availability and recovery targets, AI/MCP boundaries, and data ownership.
-- Classify each decision as `open`, `POC required`, `business input required`, `accepted`, or `deferred`.
-- Add one executable architecture fitness test for a current hard constraint, such as tenant-context propagation or forbidden dependency direction.
-- Prepare the agenda for an IT architecture review focused on decisions, owners, risks, and Phase 0.
+**New work only:**
 
-**Evidence of success:** The team can identify what is decided, what is not decided, who supplies the missing input, and which evidence is needed next.
+- Inventory the existing ADRs and enforced constraints, linking each item to its current repository evidence.
+- Create a proposed decision-readiness register with: decision ID, current evidence, missing business input, options, decision owner, required POC, status, and review date.
+- Build a tenant scenario matrix covering customer organizations, provider organizations, internal operators, users with multiple affiliations, and attempted cross-tenant access.
+- Add a small automated validation that rejects incomplete decision-register entries; do not add another dependency-direction test.
+- Prepare the IT architecture review agenda from the unresolved entries.
 
-**Do not:** Approve a vendor, service topology, SLO, or production design without team review and the required ADR/business input.
+**Evidence of success:** The validator catches an incomplete entry, and the team can distinguish implemented constraints from open business or architecture decisions.
+
+**Do not:** Duplicate existing ADRs or architecture tests, or approve a vendor, service topology, tenant definition, SLO, or production design without the required review and business input.
 
 ### 5.2 Abdourahmane Bah (Abdou) — Cloud, DevOps & Cybersecurity
 
 **Existing ownership profile:** Platform Engineer, with security and operational focus
 
-**POC:** Cloud-neutral Phase 0 delivery and security baseline.
+**POC:** Harden the existing local container path and prove a synthetic database restore.
 
-**Objective:** Demonstrate the minimum secure delivery path without selecting the final cloud platform.
+**Reuse from the repository:** Existing work-management Dockerfile, `docker-compose.yml` PostgreSQL service, PR quality-gate workflow, secret scanning, dependency scanning, SDL source analysis, and observability interfaces.
 
-**Work items:**
+**Objective:** Fill the operational gaps in the current placeholders without selecting a final cloud platform or rebuilding the existing CI pipeline.
 
-- Package one existing service or test fixture as a locally runnable container with health and readiness behavior.
-- Propose a CI pipeline that includes formatting, linting, type checking, tests, secret scanning, dependency review, and image or filesystem scanning.
-- Demonstrate local secrets injection without committing credentials.
-- Emit structured logs, a basic metric, and a trace or correlation identifier.
-- Demonstrate backup and restore for synthetic state, documenting observed recovery time and data loss window rather than asserting production RTO/RPO.
-- Create a concise threat model covering CI/CD, artifact integrity, secrets, tenant boundaries, and administrative access.
+**New work only:**
 
-**Evidence of success:** A reviewer can reproduce the local path, inspect security results, and understand which cloud/runtime decisions remain open.
+- Harden the existing work-management container POC with a non-root runtime, deterministic build, and a meaningful health/readiness smoke test.
+- Add POC evidence for container/image scanning and an SBOM; extend the existing security workflow only where these checks are missing.
+- Create a synthetic PostgreSQL backup-and-restore drill using the existing local Compose dependency.
+- Record the measured local restore time and data result without presenting them as production RTO/RPO.
+- Document remaining gaps for secrets management, centralized telemetry, cloud runtime, and production recovery.
 
-**Do not:** Provision production infrastructure, purchase services, or claim 99.9% availability, RPO, or RTO commitments.
+**Evidence of success:** A reviewer can build and test the hardened container, inspect image/SBOM results, and reproduce restoration of synthetic records.
+
+**Do not:** Recreate the existing PR workflow or source-security checks, provision production infrastructure, purchase services, or claim production availability and recovery commitments.
 
 ### 5.3 Joy Lukoji Mbiya — Full-Stack Engineering
 
 **Existing ownership profile:** Product Engineer, customer and workflow implementation focus
 
-**POC:** Minimal runnable product slice around the existing work-management domain.
+**POC:** First runnable HTTP adapter for the existing work-request creation use case.
 
-**Objective:** Prove that repository domain code can be exposed through a thin adapter while preserving contracts, validation, and tenant context.
+**Reuse from the repository:** Work-management domain and application services, composition root, in-memory adapters, `POST /v1/work-requests` OpenAPI contract, event schema, and tenant authorization helper.
 
-**Work items:**
+**Objective:** Implement the missing runtime boundary without duplicating domain logic or redefining the existing contract.
 
-- Build a minimal HTTP or UI adapter for one synthetic work-management journey.
-- Use the existing domain/service contracts rather than duplicating business logic in the adapter.
-- Include input validation, error states, tenant-context handling, loading/empty states if a UI is used, and accessible interaction basics.
-- Add contract-focused and adapter-focused tests.
-- Document gaps that require approved product requirements.
+**New work only:**
 
-**Evidence of success:** The slice runs locally, demonstrates one end-to-end path with synthetic data, and fails safely for invalid or cross-tenant requests.
+- Add the first runnable HTTP adapter for `POST /v1/work-requests` in the appropriate service or gateway boundary.
+- Map validated requests into the existing create-work-request application use case.
+- Propagate authenticated tenant context and return the contract's `202`, `400`, `401`, and `403` outcomes.
+- Add adapter/contract tests, including invalid input and attempted cross-tenant access.
+- Provide an exact local run command and one synthetic request/response demonstration.
 
-**Do not:** Invent final customer journeys, pricing, payment/refund behavior, provider approval rules, or production APIs.
+**Evidence of success:** A teammate can start the adapter, submit a synthetic request, and observe safe, contract-compliant success and failure behavior.
+
+**Do not:** Rebuild the work-management domain, create a second API contract, or invent pricing, payment/refund, provider-approval, or final customer-journey requirements.
 
 ### 5.4 Chapelle Kabangu — Digital Platform & Product Operations
 
 **Existing ownership profile:** Product/Platform Engineer, integration and operability focus
 
-**POC:** Operator-facing workflow and repository reuse assessment.
+**POC:** First operator-facing synthetic work-qualification queue.
 
-**Objective:** Show how an internal operator could observe or coordinate a synthetic workflow and identify what the current skeleton can support.
+**Reuse from the repository:** Admin-portal shell, API-gateway shell, work-management qualification use case, existing contracts, and synthetic/in-memory adapters.
 
-**Work items:**
+**Objective:** Turn an empty application shell into a small operator workflow while avoiding unapproved operational policy.
 
-- Create a thin operator-facing workflow or API composition using existing contracts and services.
-- Produce a reuse matrix for relevant repository components: `reuse`, `refactor`, `replace`, or `unknown`.
-- Document error handling, retries, idempotency, audit events, and the minimum operational runbook.
-- Identify handoffs that will require business decisions, especially provider activation, complaint escalation, refunds, and event completion.
-- Capture product-operability observations without defining unapproved policy.
+**New work only:**
 
-**Evidence of success:** The team has a reproducible operator scenario, a clear view of reusable assets, and a prioritized list of integration gaps.
+- Create a minimal admin-portal view of synthetic work requests awaiting qualification.
+- Exercise the existing qualification use case through an adapter or test fixture instead of reimplementing its rules.
+- Show empty, loading, validation, authorization, and service-failure states with accessible interactions.
+- Display a correlation identifier and a synthetic audit/timeline entry for the operator action.
+- Add a smoke or accessibility test and a short reuse assessment for the admin-portal and API-gateway shells.
 
-**Do not:** Encode final operating policy or customer/provider terms that Contracts, Compliance, Finance, or business owners have not approved.
+**Evidence of success:** A reviewer can run the operator POC, qualify a synthetic request, inspect the correlation/audit evidence, and reproduce failure states.
+
+**Do not:** Rebuild Joy's create-work-request adapter or encode final provider activation, complaint, refund, or event-completion policy.
 
 ### 5.5 Mamadou Aliou Diallo — AI & Data Engineering
 
 **Existing ownership profile:** AI/Data Engineer
 
-**POC:** AI evaluation, guardrail, and audit expansion.
+**POC:** Read-only synthetic MCP-style tool boundary and missing abuse evaluations.
 
-**Objective:** Evaluate the existing AI orchestration slice under realistic failure and safety conditions while remaining model- and provider-neutral.
+**Reuse from the repository:** Inspection-assistant orchestration, tenant-scoped retrieval, citation enforcement, human-approval gate, deterministic provider fallback, AI audit record, schema checks, and existing tenant/outage evaluations.
 
-**Work items:**
+**Objective:** Prove the currently missing tool-integration boundary and its safety behavior without duplicating existing AI guardrails or connecting to a live system.
 
-- Extend the existing evaluation suite with tenant-leakage, prompt-injection, malformed-output, model/tool outage, low-quality data, and unsupported-decision scenarios.
-- Demonstrate schema validation, safe fallback, human escalation, and an auditable decision record.
-- Record quality, latency, and cost proxies using synthetic inputs.
-- Propose the boundary between deterministic business rules, AI assistance, and mandatory human approval.
-- Identify candidate MCP/tool interfaces but do not connect them to live systems or grant write authority.
+**New work only:**
 
-**Evidence of success:** Evaluation results are repeatable, failures are visible, unsafe output is contained, and reviewers can inspect the input, output, model/tool metadata, and human-decision path.
+- Define and implement a provider-neutral, read-only MCP-style tool contract for retrieving a synthetic inspection record.
+- Include explicit input/output schemas, tenant authorization, timeout behavior, bounded response size, correlation/audit metadata, and safe error mapping.
+- Add evaluations for prompt injection through tool input, malformed tool output, tool timeout, excessive data, sensitive-data redaction, and cross-tenant tool access.
+- Reuse the existing human-approval and fallback mechanisms instead of implementing parallel controls.
+- Record deterministic latency and invocation-count evidence; label cost figures as estimates unless a real approved provider is used.
 
-**Do not:** Allow AI to activate providers, approve refunds, change contractual status, make final compliance decisions, or access data across tenants.
+**Evidence of success:** The synthetic tool succeeds for an authorized request and the evaluation suite blocks or safely contains each abuse and failure scenario.
+
+**Do not:** Reimplement existing tenant-leakage/provider-outage tests, connect to live data, grant write authority, or let AI make final provider, refund, contractual, or compliance decisions.
 
 ## 6. Peer review model
 
