@@ -91,7 +91,8 @@ describe('PR implementation-loop evidence', () => {
   it('accepts disclosed pre-implementation evidence gaps for governance changes', () => {
     const item = evidence();
     item.steps.tests.status = 'not applicable';
-    item.steps.tests.detail = 'Not applicable: governance-only change; regression coverage captured in validation.';
+    item.steps.tests.detail =
+      'Not applicable: governance-only change; regression coverage captured in validation.';
     item.steps['focused-failure'].status = 'not applicable';
     item.steps['focused-failure'].detail =
       'Not applicable: governance-only change; focused-failure evidence gap explicitly disclosed.';
