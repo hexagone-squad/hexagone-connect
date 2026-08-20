@@ -1,0 +1,16 @@
+# Work-management container POC
+
+> **POC / TRAINING / NOT FOR PRODUCTION**
+
+Build and smoke test from the repository root:
+
+```bash
+docker build --pull -t hexagone/work-management:poc services/work-management
+docker run --rm --read-only --cap-drop ALL --security-opt no-new-privileges -p 3000:3000 hexagone/work-management:poc
+curl --fail http://127.0.0.1:3000/health/live
+curl --fail http://127.0.0.1:3000/health/ready
+```
+
+This readiness-only process does not claim database or downstream readiness.
+Production needs an approved registry, digest pinning, provenance/signing,
+patching, secrets management, and centralized telemetry.
