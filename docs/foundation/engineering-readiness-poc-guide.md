@@ -75,7 +75,7 @@ The following capabilities already exist and must be reused rather than rebuilt:
 |---|---|---|
 | Architecture | ADRs and dependency-direction enforcement | Open-decision readiness register and tenant scenario matrix |
 | Platform | PR quality gates, secret/dependency/source scanning, Dockerfile, local PostgreSQL, observability types | Container hardening, image/SBOM evidence, and tested synthetic database restore |
-| Product | Work-management domain/application logic, OpenAPI contract, tenant authorization helper, app shells | First runnable HTTP adapter and first operator-facing workflow |
+| Product | Work-management domain/application logic, OpenAPI contract, tenant authorization helper, POC HTTP adapter in `apps/api-gateway` | First operator-facing qualification workflow |
 | AI | Tenant isolation, citation requirement, human-approval gate, deterministic fallback, audit record, provider-outage tests | Read-only MCP-style tool boundary and missing tool/prompt abuse evaluations |
 
 If `main` changes before a POC starts, the contributor must repeat the gap check. If the assigned gap has since been implemented, stop and propose a different extension to the Technology, Product & Architecture Lead.
@@ -129,6 +129,8 @@ If `main` changes before a POC starts, the contributor must repeat the gap check
 **Existing ownership profile:** Product Engineer, customer and workflow implementation focus
 
 **POC:** First runnable HTTP adapter for the existing work-request creation use case.
+
+**Status on current tree:** Implemented as `TRAINING` / `POC` / `NOT FOR PRODUCTION` in `apps/api-gateway`. See [api-gateway README](../../apps/api-gateway/README.md). Do not rebuild it; Chapelle's operator queue should consume this boundary.
 
 **Reuse from the repository:** Work-management domain and application services, composition root, in-memory adapters, `POST /v1/work-requests` OpenAPI contract, event schema, and tenant authorization helper.
 
