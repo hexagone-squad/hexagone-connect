@@ -2,7 +2,7 @@
 
 | Term | Meaning in this repository |
 | --- | --- |
-| AI orchestration | The `services/ai-orchestration` boundary that owns current AI inspection assistant behavior and evaluations. |
+| API gateway | The `apps/api-gateway` training/POC HTTP boundary that maps `POST /v1/work-requests` to work-management. |
 | Canonical contract | A versioned public API or event schema under `contracts/`. |
 | Consequential action | An AI-assisted action category that requires a human approval token before execution. |
 | Evidence | Recorded proof of commands, tests, artifacts, review, or manual checks used to support a change. |

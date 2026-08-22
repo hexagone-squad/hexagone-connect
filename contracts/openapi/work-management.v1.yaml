@@ -7,11 +7,64 @@ paths:
     post:
       operationId: createWorkRequest
       security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkRequest'
       responses:
-        '202': { description: Accepted }
-        '400': { description: Invalid request }
-        '401': { description: Unauthenticated }
-        '403': { description: Unauthorized tenant access }
+        '202':
+          description: Accepted
+          headers:
+            X-Correlation-Id:
+              schema: { type: string, format: uuid }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkRequestAccepted'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+        '403':
+          description: Unauthorized tenant access
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
 components:
   securitySchemes:
     bearerAuth: { type: http, scheme: bearer }
+  schemas:
+    CreateWorkRequest:
+      type: object
+      additionalProperties: false
+      required: [tenantId, customerId, serviceCategory]
+      properties:
+        tenantId: { type: string, format: uuid }
+        customerId: { type: string, format: uuid }
+        serviceCategory: { type: string, minLength: 1 }
+    WorkRequestAccepted:
+      type: object
+      additionalProperties: false
+      required: [requestId, tenantId, status, correlationId]
+      properties:
+        requestId: { type: string, format: uuid }
+        tenantId: { type: string, format: uuid }
+        status: { type: string, const: submitted }
+        correlationId: { type: string, format: uuid }
+    ErrorBody:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error: { type: string, minLength: 1 }

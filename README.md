@@ -2,7 +2,7 @@
 
 Hexagone Connect is an early-stage TypeScript monorepo for an AI-assisted marketplace and service-operations platform. The product direction is a marketplace that connects customers, internal operators, and service partners through tenant-scoped workflows.
 
-The repository currently serves the engineering team building the foundation. It does not yet contain a runnable web application, API server, deployment pipeline, or production infrastructure.
+The repository currently serves the engineering team building the foundation. It does not yet contain a runnable web UI, deployment pipeline, or production infrastructure. A training/POC HTTP adapter can accept `POST /v1/work-requests` locally; it is not a production API.
 
 ## Current Scope
 
@@ -11,6 +11,7 @@ Implemented now:
 - workspace setup, validation scripts, and CI quality gates
 - a `work-management` domain slice for creating and qualifying work requests
 - an `identity-tenant` authorization helper for tenant access checks
+- a training/POC `api-gateway` HTTP adapter for `POST /v1/work-requests` (in-memory, synthetic bearer tokens)
 - an `ai-orchestration` inspection assistant with schema checks, tenant-boundary checks, fallback behavior, audit payloads, and evaluation tests
 - canonical OpenAPI and event contracts under [contracts](contracts)
 - governance checks for architecture boundaries, contracts, type safety, secrets, licenses, docs, and Implementation Loop evidence
@@ -18,7 +19,7 @@ Implemented now:
 Current non-goals:
 
 - production deployment, release automation, or multi-environment orchestration
-- runnable frontend or API gateway behavior
+- runnable frontend or production API-gateway behavior
 - live model-provider, payment-provider, notification-provider, or cloud integrations
 - load testing, disaster recovery, SBOM signing, or observability infrastructure
 
@@ -34,7 +35,7 @@ Current non-goals:
 ## Repository Structure
 
 ```text
-apps/             Placeholder app workspaces; no UI runtime yet
+apps/             App workspaces; api-gateway has a POC HTTP adapter, other apps export names only
 services/         Domain service workspaces and implemented service logic
 packages/         Shared package workspaces
 contracts/        Canonical public OpenAPI and event schemas
@@ -64,6 +65,7 @@ For a detailed map, see [docs/codebase-map.md](docs/codebase-map.md).
 | --- | --- | --- |
 | `APP_ENV` | No | Documents the local environment label. |
 | `LOG_LEVEL` | No | Reserved for future runtime logging configuration. |
+| `PORT` | No | Listen port for the POC work-request HTTP adapter (default `3000`). |
 
 ## Commands
 
@@ -89,6 +91,12 @@ Run tests:
 
 ```bash
 pnpm test:unit
+```
+
+Start the training/POC work-request HTTP adapter:
+
+```bash
+pnpm run poc:http-adapter
 ```
 
 Run linting:
@@ -215,4 +223,4 @@ Execution expectations for complex work:
 
 ## Project Maturity
 
-This is initial setup. The repository can install, typecheck, lint, test, validate contracts, scan for secret patterns, and run governance checks. Most app and service workspaces are named boundaries only. Treat production-readiness, deployment, observability, and external integrations as deferred until there is executable runtime behavior and an accepted ADR.
+This is initial setup. The repository can install, typecheck, lint, test, validate contracts, scan for secret patterns, and run governance checks. A training/POC HTTP adapter in `apps/api-gateway` can create work requests locally with synthetic tokens and in-memory storage. Most other app and service workspaces remain named boundaries only. Treat production-readiness, deployment, observability, and external integrations as deferred until there is an accepted ADR.

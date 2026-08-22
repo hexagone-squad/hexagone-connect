@@ -36,6 +36,7 @@
     "workflow:eval-claude-md": "tsx scripts/eval-claude-md.ts",
     "workflow:wow": "tsx scripts/workflow-wow.ts",
     "workflow:verify": "pnpm run validate",
+    "poc:http-adapter": "tsx apps/api-gateway/src/main.ts",
     "validate": "tsx scripts/run-ci.ts",
     "build:ci": "pnpm run validate && pnpm run check:dependency-vulnerabilities"
   },

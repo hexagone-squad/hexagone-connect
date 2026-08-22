@@ -4,7 +4,7 @@ Owns customer requests, qualification, estimates, assignments, inspections, jobs
 
 ## Supported workflow
 
-- `createWorkRequest`: validates request input, persists tenant-scoped submission data, and emits a `WorkRequestCreated` event.
+- `createWorkRequest`: validates request input, persists tenant-scoped submission data, and emits a `WorkRequestCreated` event. A training/POC HTTP adapter in `apps/api-gateway` maps `POST /v1/work-requests` onto this use case; the domain stays in this service.
 - `qualifyWorkRequest`: transitions a submitted request to `qualified`, persists the new status, and emits a `WorkRequestQualified` event.
 
 ## Architectural rules
