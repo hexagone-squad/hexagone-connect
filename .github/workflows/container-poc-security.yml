@@ -22,7 +22,7 @@ jobs:
           image: hexagone/work-management:poc
           format: spdx-json
           output-file: .ci-artifacts/container/work-management.spdx.json
-      - uses: aquasecurity/trivy-action@v0.30.0
+      - uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: hexagone/work-management:poc
           format: json
