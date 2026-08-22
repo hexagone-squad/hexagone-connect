@@ -1,6 +1,9 @@
 # POC / TRAINING / NOT FOR PRODUCTION.
 FROM node:22.23.2-alpine3.23
 ENV NODE_ENV=production PORT=3000
+# Runtime invokes Node directly; remove unused npm tooling and its dependency surface.
+RUN rm -rf /usr/local/lib/node_modules/npm \
+    && rm -f /usr/local/bin/npm /usr/local/bin/npx
 WORKDIR /app
 COPY --chown=node:node container ./container
 USER node
