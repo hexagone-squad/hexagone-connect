@@ -38,6 +38,14 @@ queue controller. A fetch adapter maps the
 operator workflow to the versioned API gateway contract; the React view does not
 import or execute work-management code.
 
+The qualification feature is organized under `src/features/qualification-queue`:
+
+- `QualificationQueuePage` is the feature container and composition boundary.
+- `useQualificationQueueViewModel` owns UI orchestration and command state.
+- Header, panel, content, request-card, and activity components are presentational.
+- `qualification-queue.styles.ts` owns shared Fluent design-token styling.
+- `index.ts` is the feature's public React API.
+
 The API gateway owns authentication, tenant authorization, input validation,
 and safe HTTP error mapping. It delegates qualification to work management and
 does not redefine Joy's create-work-request operation or domain rules.

@@ -1,7 +1,7 @@
 import { FluentProvider, webLightTheme } from '@fluentui/react-components';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { QualificationQueueApp } from './components/fluent-qualification-queue-app.js';
+import { QualificationQueuePage } from './features/qualification-queue/index.js';
 import { createHttpQualificationAdapter } from './http-qualification-adapter.js';
 import './global.css';
 
@@ -11,7 +11,7 @@ if (!appRoot) throw new Error('Admin portal root is missing');
 createRoot(appRoot).render(
   <StrictMode>
     <FluentProvider theme={webLightTheme} className="app-provider">
-      <QualificationQueueApp
+      <QualificationQueuePage
         createAdapter={(scenario) => Promise.resolve(createHttpQualificationAdapter({ scenario }))}
         createCorrelationId={() => `correlation-${crypto.randomUUID()}`}
         now={() => new Date().toISOString()}
