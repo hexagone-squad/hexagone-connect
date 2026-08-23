@@ -5,6 +5,7 @@ const stages = [
   'lint',
   'typecheck',
   'check:typesafety',
+  'check:source-policy',
   'check:ownership',
   'build',
   'test:unit',

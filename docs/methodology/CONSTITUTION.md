@@ -2,7 +2,7 @@
 
 Status: Binding
 
-Version: 2.0.0
+Version: 2.1.0
 
 Canonical policy source: this document
 
@@ -18,33 +18,63 @@ time-bounded exception is the only permitted deviation from a hard constraint.
 
 ## Hard constraints
 
-| ID          | Requirement                                                                                                                                                                | Applicable paths                                                                        | Failure prevented                                      | Verification                                                                                        |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
-| HC-SEC-001  | Repository content MUST NOT contain secrets, private keys, access tokens, or production personal data.                                                                     | `**/*`                                                                                  | Credential and data disclosure.                        | Automated secret and prohibited-pattern scan.                                                       |
-| HC-SEC-002  | Tenant-scoped server operations MUST authorize the tenant before data access and prove isolation with tests.                                                               | `services/**`, `apps/api-gateway/**`, `database/**`                                     | Cross-tenant access.                                   | Automated authorization and integration tests; manual trust-boundary review for new identity flows. |
-| HC-TYPE-001 | Production TypeScript MUST pass strict type checking; `any` requires a documented, approved escape-hatch comment.                                                          | `**/*.ts` excluding tests and generated code                                            | Runtime failures caused by unchecked values.           | `tsc --noEmit` and an automated scoped-`any` check.                                                 |
-| HC-ARCH-001 | Imports MUST respect domain, application, adapter, package, and service ownership boundaries.                                                                              | `apps/**`, `services/**`, `packages/**`                                                 | Hidden coupling and a distributed monolith.            | Automated dependency-direction and prohibited-import check.                                         |
-| HC-ARCH-002 | API and event changes MUST use a versioned contract, registered schema, and compatibility evidence.                                                                        | `contracts/**`, `packages/contracts/**`, `services/**`                                  | Breaking producer/consumer releases.                   | Automated schema, naming, registration, and contract-test validation.                               |
-| HC-TEST-001 | Functional production changes MUST include mapped focused tests that pass.                                                                                                 | `apps/**/src/**`, `services/**/src/**`, `packages/**/src/**`, `tests/**`                | Unverified behavioral regressions.                     | Automated changed-source-to-test mapping in CI plus focused test execution.                         |
-| HC-AI-001   | AI outputs MUST be schema-validated and versioned; consequential actions MUST require human approval; AI capability changes MUST include reproducible evaluation evidence. | `ai/**`, `services/ai-orchestration/**`                                                 | Unsafe, untraceable, or unreviewed AI behavior.        | Automated evaluation and schema checks; manual approval review for consequential actions.           |
-| HC-DEP-001  | Production dependencies MUST have no unapproved high or critical vulnerabilities and MUST satisfy the license allowlist.                                                   | `package.json`, `pnpm-lock.yaml`, `**/package.json`                                     | Known vulnerable or legally incompatible dependencies. | Automated dependency audit and license-policy check.                                                |
-| HC-DOC-001  | Changes to registered services, contracts, policies, operations, or deployment behavior MUST update their required documentation and registrations.                        | `services/**`, `contracts/**`, `policies/**`, `infrastructure/**`, `docs/**`            | Architecture and operating-documentation drift.        | Automated registration, link, and documentation-consistency checks.                                 |
-| HC-GOV-001  | Governance references MUST resolve; hard-constraint amendments MUST have an approved evaluation scenario and non-regression review.                                        | `docs/methodology/**`, `docs/constitution/**`, `policies/**`, `.github/**`, `AGENTS.md` | Broken or silently weakened governance.                | Automated methodology-integrity and rule-reference checks; mandatory human approval for amendments. |
-| HC-GIT-001  | Agents MUST preserve user-owned changes and MUST NOT commit, push, amend, reset, rebase, branch, or open a pull request without explicit user approval.                    | Agent instruction files and agent activity                                              | Accidental loss or publication of user work.           | Mandatory agent instruction acknowledgement; manual review of Git actions.                          |
+| ID          | Requirement                                                                                                                                                                | Applicable paths                                                                                  | Failure prevented                                      | Verification                                                                                        |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| HC-SEC-001  | Repository content MUST NOT contain secrets, private keys, access tokens, or production personal data.                                                                     | `**/*`                                                                                            | Credential and data disclosure.                        | Automated secret and prohibited-pattern scan.                                                       |
+| HC-SEC-002  | Tenant-scoped server operations MUST authorize the tenant before data access and prove isolation with tests.                                                               | `services/**`, `apps/api-gateway/**`, `database/**`                                               | Cross-tenant access.                                   | Automated authorization and integration tests; manual trust-boundary review for new identity flows. |
+| HC-TYPE-001 | Production TypeScript MUST pass strict type checking; `any` requires a documented, approved escape-hatch comment.                                                          | `**/*.ts` excluding tests and generated code                                                      | Runtime failures caused by unchecked values.           | `tsc --noEmit` and an automated scoped-`any` check.                                                 |
+| HC-ARCH-001 | Imports MUST respect domain, application, adapter, package, and service ownership boundaries.                                                                              | `apps/**`, `services/**`, `packages/**`                                                           | Hidden coupling and a distributed monolith.            | Automated dependency-direction and prohibited-import check.                                         |
+| HC-ARCH-002 | API and event changes MUST use a versioned contract, registered schema, and compatibility evidence.                                                                        | `contracts/**`, `packages/contracts/**`, `services/**`                                            | Breaking producer/consumer releases.                   | Automated schema, naming, registration, and contract-test validation.                               |
+| HC-ARCH-003 | Browser applications MUST NOT import service source or service workspace packages; service communication MUST use local adapters over versioned contracts.                 | `apps/admin-portal/**`, `apps/inspection-app/**`, `apps/provider-portal/**`, `apps/public-web/**` | Browser coupling to deployable service internals.      | `pnpm run check:source-policy` import-boundary validation.                                          |
+| HC-ARCH-004 | Imports between application features MUST use the target feature's public `index.ts`; private cross-feature imports are prohibited.                                        | `apps/**/src/features/**`                                                                         | Feature internals becoming an implicit shared API.     | `pnpm run check:source-policy` resolved feature-import validation.                                  |
+| HC-TEST-001 | Functional production changes MUST include mapped focused tests that pass.                                                                                                 | `apps/**/src/**`, `services/**/src/**`, `packages/**/src/**`, `tests/**`                          | Unverified behavioral regressions.                     | Automated changed-source-to-test mapping in CI plus focused test execution.                         |
+| HC-UI-001   | Production React UI MUST use Fluent UI React v9 for interactive controls; native interactive JSX elements require a documented approved exception.                         | `apps/admin-portal/**`, `apps/inspection-app/**`, `apps/provider-portal/**`, `apps/public-web/**` | Inconsistent, inaccessible, or ungoverned controls.    | `pnpm run check:source-policy` JSX and package-manifest validation.                                 |
+| HC-AI-001   | AI outputs MUST be schema-validated and versioned; consequential actions MUST require human approval; AI capability changes MUST include reproducible evaluation evidence. | `ai/**`, `services/ai-orchestration/**`                                                           | Unsafe, untraceable, or unreviewed AI behavior.        | Automated evaluation and schema checks; manual approval review for consequential actions.           |
+| HC-DEP-001  | Production dependencies MUST have no unapproved high or critical vulnerabilities and MUST satisfy the license allowlist.                                                   | `package.json`, `pnpm-lock.yaml`, `**/package.json`                                               | Known vulnerable or legally incompatible dependencies. | Automated dependency audit and license-policy check.                                                |
+| HC-DOC-001  | Changes to registered services, contracts, policies, operations, or deployment behavior MUST update their required documentation and registrations.                        | `services/**`, `contracts/**`, `policies/**`, `infrastructure/**`, `docs/**`                      | Architecture and operating-documentation drift.        | Automated registration, link, and documentation-consistency checks.                                 |
+| HC-GOV-001  | Governance references MUST resolve; hard-constraint amendments MUST have an approved evaluation scenario and non-regression review.                                        | `docs/methodology/**`, `docs/constitution/**`, `policies/**`, `.github/**`, `AGENTS.md`           | Broken or silently weakened governance.                | Automated methodology-integrity and rule-reference checks; mandatory human approval for amendments. |
+| HC-GIT-001  | Agents MUST preserve user-owned changes and MUST NOT commit, push, amend, reset, rebase, branch, or open a pull request without explicit user approval.                    | Agent instruction files and agent activity                                                        | Accidental loss or publication of user work.           | Mandatory agent instruction acknowledgement; manual review of Git actions.                          |
 
 ## Measurable non-blocking goals
 
-| ID          | Goal and metric                                                                             | Applicable paths                 | Measurement                                           |
-| ----------- | ------------------------------------------------------------------------------------------- | -------------------------------- | ----------------------------------------------------- |
-| SC-TEST-001 | Report line and branch coverage by workspace and changed-code coverage.                     | TypeScript source and tests      | Coverage report compared with the committed baseline. |
-| SC-A11Y-001 | Report serious and moderate accessibility findings by changed UI flow once UI exists.       | `apps/**`                        | Axe result summary per E2E flow.                      |
-| SC-I18N-001 | Report locale-key completeness and untranslated-key count once locale resources exist.      | UI source and locale resources   | Locale consistency report.                            |
-| SC-PERF-001 | Report artifact-size deltas and focused interaction timing once build outputs exist.        | Deployable apps and services     | Budget report and measurement comparison.             |
-| SC-TEL-001  | Report critical-operation telemetry registration coverage once a telemetry registry exists. | Services, observability, AI      | Registered-event coverage report.                     |
-| SC-DEP-001  | Report outdated dependencies and remediation age.                                           | Workspace manifests and lockfile | Dependency freshness report.                          |
+| ID          | Goal and metric                                                                             | Applicable paths                 | Measurement                                            |
+| ----------- | ------------------------------------------------------------------------------------------- | -------------------------------- | ------------------------------------------------------ |
+| SC-TEST-001 | Report line and branch coverage by workspace and changed-code coverage.                     | TypeScript source and tests      | Coverage report compared with the committed baseline.  |
+| SC-ARCH-001 | Report feature modules over 300 lines and feature directories without a public `index.ts`.  | `apps/**/src/features/**`        | `pnpm run check:source-policy` maintainability report. |
+| SC-A11Y-001 | Report serious and moderate accessibility findings by changed UI flow once UI exists.       | `apps/**`                        | Axe result summary per E2E flow.                       |
+| SC-I18N-001 | Report locale-key completeness and untranslated-key count once locale resources exist.      | UI source and locale resources   | Locale consistency report.                             |
+| SC-PERF-001 | Report artifact-size deltas and focused interaction timing once build outputs exist.        | Deployable apps and services     | Budget report and measurement comparison.              |
+| SC-TEL-001  | Report critical-operation telemetry registration coverage once a telemetry registry exists. | Services, observability, AI      | Registered-event coverage report.                      |
+| SC-DEP-001  | Report outdated dependencies and remediation age.                                           | Workspace manifests and lockfile | Dependency freshness report.                           |
 
 `SC-*` results are reported but do not block merge unless promoted through the
 amendment process.
+
+### UI and feature-boundary amendment evidence
+
+- **Demonstrated risk:** Browser code can compile while importing deployable
+  service internals, features can couple to another feature's private files, and
+  native controls can bypass the approved accessible design system.
+- **Quality bar:** Browser/service imports and private cross-feature imports have
+  zero violations. Interactive React controls use Fluent UI React v9 unless an
+  exception is documented and approved. Feature size and missing public indexes
+  are reported without blocking merge.
+- **Deterministic enforcement:** `pnpm run check:source-policy` scans production
+  manifests and source imports, resolves feature boundaries, rejects native
+  interactive JSX, and reports feature maintainability findings. The command is
+  part of `pnpm run validate`.
+- **Affected scope:** Browser application package manifests and production source
+  under `apps/admin-portal`, `apps/inspection-app`, `apps/provider-portal`, and
+  `apps/public-web`.
+- **Behavioral scenarios:** A native `<button>` fails while Fluent `Button`
+  passes; a browser import from `@hexagone/work-management` fails; a private
+  import from another feature fails while its `index.ts` passes; a 301-line
+  feature module reports a non-blocking maintainability finding.
+- **Non-regression analysis:** Existing architecture, accessibility, localization,
+  test-mapping, type-safety, and dependency checks remain in force. These rules
+  add browser and feature-boundary precision without weakening existing policy.
+- **Approval:** This hard-constraint amendment requires code-owner approval before
+  merge; implementation in a draft pull request does not imply approval.
 
 ## Required implementation workflow
 

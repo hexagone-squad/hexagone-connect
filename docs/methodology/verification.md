@@ -13,17 +13,18 @@ contract for repository changes.
 2. formatting check;
 3. linting;
 4. strict type checking;
-5. unit tests;
-6. contract and schema tests;
-7. architecture-boundary tests;
-8. integration tests;
-9. applicable browser end-to-end tests;
-10. applicable accessibility tests;
-11. secret-pattern and license checks;
-12. localization, documentation, and registration checks;
-13. rule-reference and methodology-integrity checks;
-14. artifact-size budget checks;
-15. applicable AI evaluations.
+5. browser source-policy checks for Fluent controls and feature/service boundaries;
+6. unit tests;
+7. contract and schema tests;
+8. architecture-boundary tests;
+9. integration tests;
+10. applicable browser end-to-end tests;
+11. applicable accessibility tests;
+12. secret-pattern and license checks;
+13. localization, documentation, and registration checks;
+14. rule-reference and methodology-integrity checks;
+15. artifact-size budget checks;
+16. applicable AI evaluations.
 
 `pnpm run build:ci` runs `pnpm run validate` and then the network-dependent dependency vulnerability scan. The PR workflow runs implementation-loop proof validation afterward, because it requires PR metadata. CI reports each as a separate step so registry failures and evidence findings are actionable.
 
