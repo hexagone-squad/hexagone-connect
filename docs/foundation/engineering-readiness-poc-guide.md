@@ -98,6 +98,12 @@ If `main` changes before a POC starts, the contributor must repeat the gap check
 - Add a small automated validation that rejects incomplete decision-register entries; do not add another dependency-direction test.
 - Prepare the IT architecture review agenda from the unresolved entries.
 
+**POC output artifacts:**
+
+- [Decision readiness register (POC)](decision-readiness-register.md)
+- [Tenant-boundary scenario matrix (POC)](tenant-boundary-scenario-matrix.md)
+- [IT architecture review agenda (POC)](it-architecture-review-agenda.md)
+
 **Evidence of success:** The validator catches an incomplete entry, and the team can distinguish implemented constraints from open business or architecture decisions.
 
 **Do not:** Duplicate existing ADRs or architecture tests, or approve a vendor, service topology, tenant definition, SLO, or production design without the required review and business input.

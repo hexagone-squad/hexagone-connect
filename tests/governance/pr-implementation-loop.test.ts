@@ -78,6 +78,7 @@ describe('PR implementation-loop evidence', () => {
 
   it('rejects a non-trivial exemption', () => {
     const item = evidence();
+    item.changeType = 'feature';
     item.steps.tests.status = 'not applicable';
     expect(() =>
       validatePrEvidence(item, {
@@ -86,4 +87,19 @@ describe('PR implementation-loop evidence', () => {
       }),
     ).toThrow('cannot be exempted');
   });
+
+  it.each(['tests', 'focused-failure', 'before-evidence'] as const)(
+    'rejects a governance exemption for the mandatory %s stage',
+    (step) => {
+      const item = evidence();
+      item.steps[step].status = 'not applicable';
+      item.steps[step].detail = `Not applicable: governance-only ${step} evidence gap.`;
+      expect(() =>
+        validatePrEvidence(item, {
+          changedFiles: ['scripts/check-pr-implementation-loop.ts'],
+          diffHash: 'final-diff-hash',
+        }),
+      ).toThrow(`${step} cannot be exempted`);
+    },
+  );
 });
