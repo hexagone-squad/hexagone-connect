@@ -45,13 +45,30 @@ const decisionReadinessHeaders = [
 
 export function validateDecisionReadinessRegister(content: string): void {
   const lines = content.split('\n');
-  const headerLineIndex = lines.findIndex(
-    (line) =>
-      line.trim().startsWith('|') &&
-      decisionReadinessHeaders.every((header) => line.includes(header)),
-  );
+  const parseRow = (line: string): string[] | undefined => {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith('|') || !trimmed.endsWith('|')) return undefined;
+    return trimmed
+      .slice(1, -1)
+      .split('|')
+      .map((cell) => cell.trim());
+  };
+  const headerLineIndex = lines.findIndex((line) => {
+    const cells = parseRow(line);
+    return (
+      cells !== undefined && JSON.stringify(cells) === JSON.stringify(decisionReadinessHeaders)
+    );
+  });
   if (headerLineIndex < 0) {
     fail('HC-DOC-001 decision-readiness register is missing the required table header');
+  }
+
+  const separator = parseRow(lines[headerLineIndex + 1] ?? '');
+  if (
+    separator?.length !== decisionReadinessHeaders.length ||
+    separator.some((cell) => !/^:?-{3,}:?$/.test(cell))
+  ) {
+    fail('HC-DOC-001 decision-readiness register is missing a valid table separator');
   }
 
   const rows: string[][] = [];
@@ -59,18 +76,11 @@ export function validateDecisionReadinessRegister(content: string): void {
     const trimmed = lines[i].trim();
     if (!trimmed) break;
     if (!trimmed.startsWith('|')) break;
-    const cells = trimmed
-      .split('|')
-      .slice(1, -1)
-      .map((cell) => cell.trim());
-    if (cells.length !== decisionReadinessHeaders.length) {
+    const cells = parseRow(trimmed);
+    if (!cells || cells.length !== decisionReadinessHeaders.length) {
       fail('HC-DOC-001 decision-readiness register row does not match required column count');
     }
     rows.push(cells);
-  }
-
-  if (rows.length === 0) {
-    fail('HC-DOC-001 decision-readiness register must include at least one decision entry');
   }
 
   for (const [index, row] of rows.entries()) {
