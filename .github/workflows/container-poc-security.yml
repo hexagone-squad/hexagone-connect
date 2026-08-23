@@ -1,7 +1,6 @@
 name: Container POC Security Evidence
 on:
-  pull_request:
-    branches: [main]
+  workflow_call:
 permissions:
   contents: read
 jobs:
@@ -28,7 +27,6 @@ jobs:
           format: json
           output: .ci-artifacts/container/trivy.json
           severity: HIGH,CRITICAL
-          ignore-unfixed: true
           exit-code: '1'
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
