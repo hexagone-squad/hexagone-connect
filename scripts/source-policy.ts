@@ -35,7 +35,7 @@ function appRoot(file: string): string | undefined {
 }
 
 function importSpecifiers(content: string): string[] {
-  return [...content.matchAll(/(?:from\s+|import\s*\()\s*['"]([^'"]+)['"]/g)].map(
+  return [...content.matchAll(/(?:from\s+|import\s*\(|import\s+)\s*['"]([^'"]+)['"]/g)].map(
     (match) => match[1],
   );
 }
