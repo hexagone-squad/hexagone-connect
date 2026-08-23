@@ -1,22 +1,20 @@
 import { describe, expect, it, vi } from 'vitest';
-import { QualificationHttpError } from '../src/http-qualification-adapter.js';
-import { createQualificationQueue } from '../src/qualification-queue.js';
+import { QualificationHttpError } from '../src/features/qualification-queue/adapters/http-qualification-adapter.js';
+import { createQualificationQueue } from '../src/features/qualification-queue/model/qualification-queue.js';
 
 const operator = { actorId: 'operator-1', tenantId: 'tenant-1' };
 
 describe('work-qualification queue', () => {
   it("records the adapter's qualification and audit evidence", async () => {
     const adapter = {
-      listPending: vi
-        .fn()
-        .mockResolvedValue([
-          {
-            id: 'request-1',
-            tenantId: 'tenant-1',
-            serviceCategory: 'inspection',
-            status: 'submitted' as const,
-          },
-        ]),
+      listPending: vi.fn().mockResolvedValue([
+        {
+          id: 'request-1',
+          tenantId: 'tenant-1',
+          serviceCategory: 'inspection',
+          status: 'submitted' as const,
+        },
+      ]),
       qualify: vi.fn().mockResolvedValue({
         item: {
           id: 'request-1',

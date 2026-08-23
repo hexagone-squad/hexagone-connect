@@ -1,7 +1,7 @@
 import { MessageBar, MessageBarBody, Spinner, Text } from '@fluentui/react-components';
 import { ClipboardTaskListLtrRegular } from '@fluentui/react-icons';
 import { en } from '../../locales/en.js';
-import type { QualificationQueueState } from '../../qualification-queue.js';
+import type { QualificationQueueState } from './model/qualification-queue.js';
 import { useQualificationQueueStyles } from './qualification-queue.styles.js';
 import { QualificationRequestCard } from './qualification-request-card.js';
 

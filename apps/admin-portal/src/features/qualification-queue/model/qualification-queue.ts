@@ -1,15 +1,15 @@
 export interface QueueItem {
   id: string;
   serviceCategory: string;
-  status: "submitted" | "qualified";
+  status: 'submitted' | 'qualified';
   tenantId: string;
 }
 
 export interface QualificationAuditEntry {
-  action: "work-request.qualified";
+  action: 'work-request.qualified';
   actorId: string;
   tenantId: string;
-  resourceType: "work-request";
+  resourceType: 'work-request';
   resourceId: string;
   occurredAt: string;
 }
@@ -31,8 +31,8 @@ export interface QualificationAdapter {
   }): Promise<QualificationResult>;
 }
 
-export type QueueError = "authorization" | "service" | "validation";
-export type QueueStatus = "empty" | "error" | "idle" | "loading" | "ready";
+export type QueueError = 'authorization' | 'service' | 'validation';
+export type QueueStatus = 'empty' | 'error' | 'idle' | 'loading' | 'ready';
 
 export interface QualificationQueueState {
   status: QueueStatus;
@@ -57,12 +57,14 @@ export interface QualificationQueue {
 }
 
 function classifyError(error: unknown): QueueError {
-  if (error instanceof Error && error.name === "QualificationForbiddenError") return "authorization";
-  return "service";
+  if (error instanceof Error && error.name === 'QualificationForbiddenError') {
+    return 'authorization';
+  }
+  return 'service';
 }
 
 export function createQualificationQueue(options: QualificationQueueOptions): QualificationQueue {
-  let state: QualificationQueueState = { status: "idle", items: [], auditEntries: [] };
+  let state: QualificationQueueState = { status: 'idle', items: [], auditEntries: [] };
   const listeners = new Set<(nextState: QualificationQueueState) => void>();
   const update = (nextState: QualificationQueueState) => {
     state = nextState;
@@ -74,17 +76,22 @@ export function createQualificationQueue(options: QualificationQueueOptions): Qu
       return state;
     },
     async load() {
-      update({ ...state, status: "loading", error: undefined });
+      update({ ...state, status: 'loading', error: undefined });
       try {
         const items = await options.adapter.listPending({ tenantId: options.operator.tenantId });
-        update({ ...state, status: items.length === 0 ? "empty" : "ready", items, error: undefined });
+        update({
+          ...state,
+          status: items.length === 0 ? 'empty' : 'ready',
+          items,
+          error: undefined,
+        });
       } catch {
-        update({ ...state, status: "error", items: [], error: "service" });
+        update({ ...state, status: 'error', items: [], error: 'service' });
       }
     },
     async qualify(requestId) {
       if (!requestId.trim()) {
-        update({ ...state, status: "error", error: "validation" });
+        update({ ...state, status: 'error', error: 'validation' });
         return;
       }
 
@@ -95,22 +102,22 @@ export function createQualificationQueue(options: QualificationQueueOptions): Qu
           correlationId,
           now: options.now(),
           requestId,
-          tenantId: options.operator.tenantId
+          tenantId: options.operator.tenantId,
         });
         const items = state.items.filter((item) => item.id !== result.item.id);
         update({
-          status: items.length === 0 ? "empty" : "ready",
+          status: items.length === 0 ? 'empty' : 'ready',
           items,
           auditEntries: [...state.auditEntries, result.auditEntry],
-          correlationId: result.correlationId
+          correlationId: result.correlationId,
         });
       } catch (error) {
-        update({ ...state, status: "error", correlationId, error: classifyError(error) });
+        update({ ...state, status: 'error', correlationId, error: classifyError(error) });
       }
     },
     subscribe(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);
-    }
+    },
   };
 }

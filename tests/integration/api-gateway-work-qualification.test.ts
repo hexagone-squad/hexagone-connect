@@ -1,6 +1,6 @@
 import type { AddressInfo } from 'node:net';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createApiGatewayServer } from '../../apps/api-gateway/src/server.js';
+import { createApiGatewayServer } from '../../apps/api-gateway/src/index.js';
 
 let server: Awaited<ReturnType<typeof createApiGatewayServer>>;
 let baseUrl: string;

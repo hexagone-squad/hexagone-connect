@@ -41,8 +41,9 @@ import or execute work-management code.
 The qualification feature is organized under `src/features/qualification-queue`:
 
 - `QualificationQueuePage` is the feature container and composition boundary.
-- `useQualificationQueueViewModel` owns UI orchestration and command state.
+- `hooks/` owns controller subscription and view-model orchestration.
 - Header, panel, content, request-card, and activity components are presentational.
+- `adapters/` and `model/` own transport mapping and framework-independent state.
 - `qualification-queue.styles.ts` owns shared Fluent design-token styling.
 - `index.ts` is the feature's public React API.
 

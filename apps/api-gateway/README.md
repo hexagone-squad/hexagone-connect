@@ -31,3 +31,9 @@ operations follow the versioned OpenAPI contract.
 
 The local synthetic bearer is intentionally constrained to synthetic tenants.
 It must be replaced by verified identity-provider tokens before deployment.
+
+## Source organization
+
+- `src/index.ts` is the runtime composition entrypoint and public module surface.
+- `src/transport/http/` owns Node HTTP request validation and response mapping.
+- `src/authentication/` owns authentication adapters; the current adapter is synthetic.

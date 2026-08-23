@@ -1,4 +1,4 @@
-import type { QualificationScenario } from '../../http-qualification-adapter.js';
+import type { QualificationScenario } from './adapters/http-qualification-adapter.js';
 import { en } from '../../locales/en.js';
 
 export const qualificationScenarioOptions: ReadonlyArray<{

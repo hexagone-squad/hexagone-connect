@@ -1,7 +1,7 @@
 import { Badge, Button, Card, Text } from '@fluentui/react-components';
 import { CheckmarkCircleRegular } from '@fluentui/react-icons';
 import { en } from '../../locales/en.js';
-import type { QueueItem } from '../../qualification-queue.js';
+import type { QueueItem } from './model/qualification-queue.js';
 import { useQualificationQueueStyles } from './qualification-queue.styles.js';
 
 interface QualificationRequestCardProps {

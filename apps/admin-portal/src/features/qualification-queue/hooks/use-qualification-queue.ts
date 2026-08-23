@@ -1,12 +1,12 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
+import type { QualificationScenario } from '../adapters/http-qualification-adapter.js';
 import {
   createQualificationQueue,
   type QualificationAdapter,
   type QualificationQueue,
   type QualificationQueueOptions,
   type QualificationQueueState,
-} from '../qualification-queue.js';
-import type { QualificationScenario } from '../http-qualification-adapter.js';
+} from '../model/qualification-queue.js';
 
 const loadingState: QualificationQueueState = { status: 'loading', items: [], auditEntries: [] };
 

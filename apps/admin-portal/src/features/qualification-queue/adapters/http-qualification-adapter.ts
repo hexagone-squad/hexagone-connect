@@ -2,7 +2,7 @@ import type {
   QualificationAdapter,
   QualificationResult,
   QueueItem,
-} from './qualification-queue.js';
+} from '../model/qualification-queue.js';
 
 export type QualificationScenario = 'authorization' | 'empty' | 'normal' | 'service';
 

@@ -1,5 +1,5 @@
 import { Badge, Dropdown, Option, Text } from '@fluentui/react-components';
-import type { QualificationScenario } from '../../http-qualification-adapter.js';
+import type { QualificationScenario } from './adapters/http-qualification-adapter.js';
 import { en } from '../../locales/en.js';
 import { qualificationScenarioOptions } from './qualification-queue.options.js';
 import { useQualificationQueueStyles } from './qualification-queue.styles.js';

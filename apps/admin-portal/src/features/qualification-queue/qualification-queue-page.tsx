@@ -3,7 +3,7 @@ import { QualificationQueueHeader } from './qualification-queue-header.js';
 import { QualificationQueuePanel } from './qualification-queue-panel.js';
 import { useQualificationQueueStyles } from './qualification-queue.styles.js';
 import type { QualificationQueuePageProps } from './qualification-queue.types.js';
-import { useQualificationQueueViewModel } from './use-qualification-queue-view-model.js';
+import { useQualificationQueueViewModel } from './hooks/use-qualification-queue-view-model.js';
 
 export function QualificationQueuePage(props: QualificationQueuePageProps) {
   const styles = useQualificationQueueStyles();

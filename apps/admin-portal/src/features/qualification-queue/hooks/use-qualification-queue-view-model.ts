@@ -1,10 +1,7 @@
 import { startTransition, useState } from 'react';
-import {
-  useQualificationQueue,
-  useQualificationQueueState,
-} from '../../hooks/use-qualification-queue.js';
-import type { QualificationScenario } from '../../http-qualification-adapter.js';
-import type { QualificationQueuePageProps } from './qualification-queue.types.js';
+import type { QualificationScenario } from '../adapters/http-qualification-adapter.js';
+import type { QualificationQueuePageProps } from '../qualification-queue.types.js';
+import { useQualificationQueue, useQualificationQueueState } from './use-qualification-queue.js';
 
 export function useQualificationQueueViewModel(props: QualificationQueuePageProps) {
   const [scenario, setScenarioState] = useState<QualificationScenario>('normal');

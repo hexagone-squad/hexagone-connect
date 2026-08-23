@@ -1,8 +1,10 @@
 import { FluentProvider, webLightTheme } from '@fluentui/react-components';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { QualificationQueuePage } from './features/qualification-queue/index.js';
-import { createHttpQualificationAdapter } from './http-qualification-adapter.js';
+import {
+  createHttpQualificationAdapter,
+  QualificationQueuePage,
+} from './features/qualification-queue/index.js';
 import './global.css';
 
 const appRoot = document.querySelector<HTMLElement>('#app');

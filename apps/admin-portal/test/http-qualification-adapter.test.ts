@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   QualificationHttpError,
   createHttpQualificationAdapter,
-} from '../src/http-qualification-adapter.js';
+} from '../src/features/qualification-queue/adapters/http-qualification-adapter.js';
 
 describe('HTTP qualification adapter', () => {
   it('maps queue and qualification requests to the API contract', async () => {

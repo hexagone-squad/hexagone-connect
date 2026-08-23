@@ -1,6 +1,6 @@
 import { Text } from '@fluentui/react-components';
 import { en } from '../../locales/en.js';
-import type { QualificationQueueState } from '../../qualification-queue.js';
+import type { QualificationQueueState } from './model/qualification-queue.js';
 import { useQualificationQueueStyles } from './qualification-queue.styles.js';
 
 interface QualificationActivityPanelProps {

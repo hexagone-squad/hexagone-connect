@@ -1,7 +1,7 @@
 import { Button, Text } from '@fluentui/react-components';
 import { ArrowClockwiseRegular } from '@fluentui/react-icons';
 import { en } from '../../locales/en.js';
-import type { QualificationQueueState } from '../../qualification-queue.js';
+import type { QualificationQueueState } from './model/qualification-queue.js';
 import { QualificationQueueContent } from './qualification-queue-content.js';
 import { useQualificationQueueStyles } from './qualification-queue.styles.js';
 
