@@ -85,7 +85,8 @@ export async function createApiGatewayServer() {
     if (request.method === 'GET' && url.pathname === '/v1/work-requests') {
       const context = tenantContext(request, response);
       if (!context) return;
-      if (url.searchParams.get('status') !== 'submitted') {
+      const status = url.searchParams.get('status');
+      if (status !== null && status !== 'submitted') {
         writeJson(response, 400, { error: 'invalid_status' });
         return;
       }
@@ -119,7 +120,13 @@ export async function createApiGatewayServer() {
         writeJson(response, 400, { error: 'invalid_request' });
         return;
       }
-      const requestId = decodeURIComponent(qualification[1]);
+      let requestId: string;
+      try {
+        requestId = decodeURIComponent(qualification[1]);
+      } catch {
+        writeJson(response, 400, { error: 'invalid_request_path' });
+        return;
+      }
       const now = new Date().toISOString();
       try {
         const item = await workManagement.qualifyWorkRequest.execute({

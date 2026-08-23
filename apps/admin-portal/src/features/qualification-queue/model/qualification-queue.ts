@@ -85,8 +85,8 @@ export function createQualificationQueue(options: QualificationQueueOptions): Qu
           items,
           error: undefined,
         });
-      } catch {
-        update({ ...state, status: 'error', items: [], error: 'service' });
+      } catch (error) {
+        update({ ...state, status: 'error', items: [], error: classifyError(error) });
       }
     },
     async qualify(requestId) {

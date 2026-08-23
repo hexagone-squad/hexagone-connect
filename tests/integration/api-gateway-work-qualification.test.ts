@@ -36,6 +36,17 @@ describe('work qualification HTTP boundary', () => {
     expect(forbidden.status).toBe(403);
   });
 
+  it('defaults an omitted status filter to the submitted queue', async () => {
+    const response = await fetch(`${baseUrl}/v1/work-requests`, {
+      headers: authorizedHeaders,
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual([
+      expect.objectContaining({ id: 'request-1', status: 'submitted' }),
+    ]);
+  });
+
   it('lists and qualifies tenant-scoped work through HTTP', async () => {
     const queueResponse = await fetch(`${baseUrl}/v1/work-requests?status=submitted`, {
       headers: authorizedHeaders,
@@ -76,5 +87,13 @@ describe('work qualification HTTP boundary', () => {
     });
     expect(missing.status).toBe(404);
     await expect(missing.json()).resolves.toEqual({ error: 'work_request_not_found' });
+
+    const malformed = await fetch(`${baseUrl}/v1/work-requests/%E0%A4%A/qualification`, {
+      method: 'POST',
+      headers: { ...authorizedHeaders, 'content-type': 'application/json' },
+      body: JSON.stringify({ correlationId: 'correlation-http-3' }),
+    });
+    expect(malformed.status).toBe(400);
+    await expect(malformed.json()).resolves.toEqual({ error: 'invalid_request_path' });
   });
 });

@@ -7,12 +7,14 @@ export interface WorkQualificationStack {
 
 async function waitFor(url: string): Promise<void> {
   for (let attempt = 0; attempt < 50; attempt += 1) {
+    let ready = false;
     try {
-      const response = await fetch(url);
-      if (response.ok) return;
+      ready = (await fetch(url)).ok;
     } catch {
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      ready = false;
     }
+    if (ready) return;
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
   throw new Error(`Server did not start: ${url}`);
 }
@@ -55,7 +57,13 @@ export async function startWorkQualificationStack(
     },
   );
   const baseUrl = `http://127.0.0.1:${uiPort}/`;
-  await Promise.all([waitFor(`${baseUrl}`), waitFor(`http://127.0.0.1:${apiPort}/health`)]);
+  try {
+    await Promise.all([waitFor(`${baseUrl}`), waitFor(`http://127.0.0.1:${apiPort}/health`)]);
+  } catch (error) {
+    stopProcessGroup(ui.pid);
+    stopProcessGroup(api.pid);
+    throw error;
+  }
   return {
     baseUrl,
     stop() {

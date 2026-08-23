@@ -26,17 +26,34 @@ export function useQualificationQueue(
   useEffect(() => {
     let active = true;
     setQueue(null);
-    void options.createAdapter(options.scenario).then((adapter) => {
-      if (!active) return;
-      const nextQueue = createQualificationQueue({
-        adapter,
-        operator: options.operator,
-        createCorrelationId: options.createCorrelationId,
-        now: options.now,
+    void options
+      .createAdapter(options.scenario)
+      .then((adapter) => {
+        if (!active) return;
+        const nextQueue = createQualificationQueue({
+          adapter,
+          operator: options.operator,
+          createCorrelationId: options.createCorrelationId,
+          now: options.now,
+        });
+        setQueue(nextQueue);
+        void nextQueue.load();
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        const adapter: QualificationAdapter = {
+          listPending: () => Promise.reject(error),
+          qualify: () => Promise.reject(error),
+        };
+        const failedQueue = createQualificationQueue({
+          adapter,
+          operator: options.operator,
+          createCorrelationId: options.createCorrelationId,
+          now: options.now,
+        });
+        setQueue(failedQueue);
+        void failedQueue.load();
       });
-      setQueue(nextQueue);
-      void nextQueue.load();
-    });
     return () => {
       active = false;
     };

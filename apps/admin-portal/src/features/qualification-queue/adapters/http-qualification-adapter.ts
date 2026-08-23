@@ -38,7 +38,7 @@ export function createHttpQualificationAdapter(
   }
 
   return {
-    async listPending(): Promise<QueueItem[]> {
+    async listPending(_input): Promise<QueueItem[]> {
       return decode<QueueItem[]>(
         await request(`${apiPrefix}/v1/work-requests?status=submitted`, {
           headers: headers(),

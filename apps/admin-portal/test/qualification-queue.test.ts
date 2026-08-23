@@ -89,6 +89,22 @@ describe('work-qualification queue', () => {
     expect(queue.state.status).toBe('empty');
   });
 
+  it('preserves authorization failures while loading the queue', async () => {
+    const queue = createQualificationQueue({
+      adapter: {
+        listPending: vi.fn().mockRejectedValue(new QualificationHttpError('forbidden')),
+        qualify: vi.fn(),
+      },
+      operator,
+      createCorrelationId: () => 'correlation-1',
+      now: () => '2026-08-23T10:00:00.000Z',
+    });
+
+    await queue.load();
+
+    expect(queue.state).toMatchObject({ status: 'error', error: 'authorization' });
+  });
+
   it('shows validation, authorization, and safe service errors', async () => {
     const qualify = vi.fn();
     const adapter = { listPending: vi.fn().mockResolvedValue([]), qualify };
