@@ -14,11 +14,13 @@ if (rawReport === 'No licenses in packages found') {
   process.exit(0);
 }
 const report = JSON.parse(rawReport) as unknown;
-const entries = Array.isArray(report) ? report : Object.values(report as Record<string, unknown>);
+const groups = Array.isArray(report) ? report : Object.values(report as Record<string, unknown>);
+const entries = groups.flatMap((entry) => (Array.isArray(entry) ? entry : [entry]));
 for (const entry of entries) {
   const licenses =
     typeof entry === 'object' && entry !== null
-      ? (entry as { licenses?: unknown }).licenses
+      ? ((entry as { license?: unknown; licenses?: unknown }).licenses ??
+        (entry as { license?: unknown }).license)
       : undefined;
   const values = Array.isArray(licenses)
     ? licenses

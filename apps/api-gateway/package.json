@@ -2,5 +2,15 @@
   "name": "@hexagone/api-gateway",
   "private": true,
   "version": "0.1.0",
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@hexagone/identity-tenant": "workspace:*",
+    "@hexagone/work-management": "workspace:*"
+  }
 }

@@ -7,7 +7,7 @@
     "dev": "vitest --watch",
     "build": "pnpm -r --if-present run build",
     "test": "vitest run",
-    "test:unit": "vitest run --exclude tests/architecture/** --exclude tests/contracts/** --exclude tests/integration/** --exclude tests/e2e/**",
+    "test:unit": "vitest run --exclude 'tests/architecture/**' --exclude 'tests/contracts/**' --exclude 'tests/integration/**' --exclude 'tests/e2e/**'",
     "test:contracts": "vitest run tests/contracts",
     "test:architecture": "vitest run tests/architecture",
     "test:integration": "tsx scripts/run-test-stage.ts integration",

@@ -59,7 +59,7 @@ if (stage === 'integration') {
     ) {
       console.warn('WARN SC-A11Y-001 accessibility specifications do not use @axe-core/playwright');
     }
-    run('pnpm', ['exec', 'playwright', 'test', `tests/e2e/**/*${suffix}`]);
+    run('pnpm', ['exec', 'playwright', 'test', ...specs]);
   }
 } else if (stage === 'ai') {
   if (!hasFiles('services/ai-orchestration/evaluations', (file) => file.endsWith('.test.ts'))) {
