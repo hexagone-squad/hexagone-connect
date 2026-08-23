@@ -1,6 +1,7 @@
 import type { AddressInfo } from 'node:net';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { createApiGatewayServer } from '../../apps/api-gateway/src/index.js';
+import { buildWorkManagement } from '../../services/work-management/src/composition-root.js';
 
 let server: Awaited<ReturnType<typeof createApiGatewayServer>>;
 let baseUrl: string;
@@ -45,6 +46,31 @@ describe('work qualification HTTP boundary', () => {
     await expect(response.json()).resolves.toEqual([
       expect.objectContaining({ id: 'request-1', status: 'submitted' }),
     ]);
+  });
+
+  it('returns a safe service response when queue listing fails', async () => {
+    const workManagement = buildWorkManagement();
+    vi.spyOn(workManagement.listSubmittedWorkRequests, 'execute').mockRejectedValue(
+      new Error('database connection details'),
+    );
+    const failingServer = await createApiGatewayServer({
+      seedSyntheticData: false,
+      workManagement,
+    });
+    await new Promise<void>((resolve) => failingServer.listen(0, '127.0.0.1', resolve));
+    const address = failingServer.address() as AddressInfo;
+
+    try {
+      const response = await fetch(`http://127.0.0.1:${address.port}/v1/work-requests`, {
+        headers: authorizedHeaders,
+      });
+      expect(response.status).toBe(503);
+      await expect(response.json()).resolves.toEqual({ error: 'service_unavailable' });
+    } finally {
+      await new Promise<void>((resolve, reject) =>
+        failingServer.close((error) => (error ? reject(error) : resolve())),
+      );
+    }
   });
 
   it('lists and qualifies tenant-scoped work through HTTP', async () => {

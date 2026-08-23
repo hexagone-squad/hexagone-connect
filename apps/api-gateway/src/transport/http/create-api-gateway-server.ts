@@ -4,6 +4,12 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import { authenticateSyntheticBearer } from '../../authentication/synthetic-bearer-authenticator.js';
 
 const maxBodyBytes = 16_384;
+type WorkManagement = ReturnType<typeof buildWorkManagement>;
+
+export interface ApiGatewayServerOptions {
+  seedSyntheticData?: boolean;
+  workManagement?: WorkManagement;
+}
 
 function writeJson(response: ServerResponse, status: number, body: unknown): void {
   response.writeHead(status, { 'content-type': 'application/json; charset=utf-8' });
@@ -56,24 +62,26 @@ function qualificationInput(value: unknown): { correlationId: string } | undefin
   return { correlationId };
 }
 
-export async function createApiGatewayServer() {
-  const workManagement = buildWorkManagement();
-  await workManagement.createWorkRequest.execute({
-    tenantId: 'tenant-1',
-    customerId: 'synthetic-customer-1',
-    serviceCategory: 'inspection',
-    requestId: 'request-1',
-    eventId: 'event-create-request-1',
-    now: '2026-08-23T09:00:00.000Z',
-  });
-  await workManagement.createWorkRequest.execute({
-    tenantId: 'tenant-2',
-    customerId: 'synthetic-customer-2',
-    serviceCategory: 'maintenance',
-    requestId: 'request-other-tenant',
-    eventId: 'event-create-request-other-tenant',
-    now: '2026-08-23T09:00:00.000Z',
-  });
+export async function createApiGatewayServer(options: ApiGatewayServerOptions = {}) {
+  const workManagement = options.workManagement ?? buildWorkManagement();
+  if (options.seedSyntheticData !== false) {
+    await workManagement.createWorkRequest.execute({
+      tenantId: 'tenant-1',
+      customerId: 'synthetic-customer-1',
+      serviceCategory: 'inspection',
+      requestId: 'request-1',
+      eventId: 'event-create-request-1',
+      now: '2026-08-23T09:00:00.000Z',
+    });
+    await workManagement.createWorkRequest.execute({
+      tenantId: 'tenant-2',
+      customerId: 'synthetic-customer-2',
+      serviceCategory: 'maintenance',
+      requestId: 'request-other-tenant',
+      eventId: 'event-create-request-other-tenant',
+      now: '2026-08-23T09:00:00.000Z',
+    });
+  }
 
   return createServer(async (request, response) => {
     const url = new URL(request.url ?? '/', 'http://gateway.local');
@@ -90,19 +98,23 @@ export async function createApiGatewayServer() {
         writeJson(response, 400, { error: 'invalid_status' });
         return;
       }
-      const requests = await workManagement.listSubmittedWorkRequests.execute({
-        tenantId: context.tenantId,
-      });
-      writeJson(
-        response,
-        200,
-        requests.map((item) => ({
-          id: item.props.id,
-          tenantId: item.props.tenantId,
-          serviceCategory: item.props.serviceCategory,
-          status: item.props.status,
-        })),
-      );
+      try {
+        const requests = await workManagement.listSubmittedWorkRequests.execute({
+          tenantId: context.tenantId,
+        });
+        writeJson(
+          response,
+          200,
+          requests.map((item) => ({
+            id: item.props.id,
+            tenantId: item.props.tenantId,
+            serviceCategory: item.props.serviceCategory,
+            status: item.props.status,
+          })),
+        );
+      } catch {
+        writeJson(response, 503, { error: 'service_unavailable' });
+      }
       return;
     }
 

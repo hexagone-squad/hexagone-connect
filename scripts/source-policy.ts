@@ -70,7 +70,7 @@ export function evaluateSourcePolicy(input: SourcePolicyInput): SourcePolicyResu
     if (feature) featureRoots.add(`${feature.app}/src/features/${feature.feature}`);
 
     if (/\.tsx$/.test(file.path) && !file.content.includes('HC-UI-001: approved')) {
-      if (/<(?:button|input|select|textarea)(?:\s|>)/.test(file.content)) {
+      if (/<(?:button|input|select|textarea)(?:\s|\/?>)/.test(file.content)) {
         violations.push({
           rule: 'HC-UI-001',
           path: file.path,

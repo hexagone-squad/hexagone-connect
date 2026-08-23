@@ -46,6 +46,19 @@ describe('source policy', () => {
     expect(fluent.violations).toEqual([]);
   });
 
+  it('rejects compact self-closing native inputs', () => {
+    const result = evaluate({
+      files: [
+        {
+          path: 'apps/admin-portal/src/features/example/example-page.tsx',
+          content: 'export const ExamplePage = () => <input/>;',
+        },
+      ],
+    });
+
+    expect(result.violations).toContainEqual(expect.objectContaining({ rule: 'HC-UI-001' }));
+  });
+
   it('rejects browser imports from service packages', () => {
     const result = evaluate({
       files: [
