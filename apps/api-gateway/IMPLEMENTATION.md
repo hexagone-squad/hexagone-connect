@@ -11,7 +11,7 @@ This document explains **what changed**, **why each block was written this way**
 
 Expose the existing `CreateWorkRequest` use case over HTTP as `POST /v1/work-requests`, with:
 
-- contract statuses `202`, `400`, `401`, `403`
+- contract statuses `202`, `400`, `401`, `403`, `415`
 - tenant authorization before any use-case call (`HC-SEC-002`)
 - no duplicated domain logic and no second API contract (`HC-ARCH-002`)
 
@@ -23,7 +23,8 @@ The POC answers: *can we add a runnable HTTP boundary without rebuilding work-ma
 | --- | --- | --- |
 | HTTP adapter | `src/work-request-gateway.ts`, `src/main.ts`, `src/index.ts` | Map HTTP → auth → use case |
 | Tests | `test/create-work-request.http.test.ts` | Adapter + tenant isolation evidence |
-| Contract | `contracts/openapi/work-management.v1.yaml` | Additive request/response schemas |
+| Contract | `contracts/openapi/work-management.v1.yaml` | Request/response schemas, version `1.1.0` |
+| Contract decision | `docs/adr/0005-work-management-v1-request-body-contract.md` | Compatibility evidence for the required request body |
 | Contract test | `tests/contracts/work-management-openapi.test.ts` | Lock contract shape in CI |
 | Package exports | `services/identity-tenant`, `services/work-management` | Public workspace APIs for composition |
 | Root script | `package.json` → `poc:http-adapter` | One documented local start command |
@@ -57,6 +58,8 @@ Putting HTTP inside `work-management` would either duplicate auth or blur the se
 ```typescript
 const UUID_PATTERN = /.../;
 const MAX_BODY_BYTES = 8_192;
+const MAX_SERVICE_CATEGORY_LENGTH = 200;
+const JSON_MEDIA_TYPE = "application/json";
 const WORK_REQUESTS_PATH = "/v1/work-requests";
 const LOOPBACK_HOST = "127.0.0.1";
 const CREATE_FIELDS = new Set(["tenantId", "customerId", "serviceCategory"]);
@@ -66,6 +69,8 @@ const CREATE_FIELDS = new Set(["tenantId", "customerId", "serviceCategory"]);
 | --- | --- |
 | `UUID_PATTERN` | Matches OpenAPI `format: uuid` and `WorkRequestCreated.v1` event schema before the use case runs |
 | `MAX_BODY_BYTES` | Simple DoS guard for a POC server; oversized bodies return `400` |
+| `MAX_SERVICE_CATEGORY_LENGTH` | Mirrors the schema `maxLength`, so a schema-valid category is never rejected by the adapter |
+| `JSON_MEDIA_TYPE` | The only media type the operation declares; anything else returns `415` |
 | `WORK_REQUESTS_PATH` | Single documented operation — no generic router |
 | `LOOPBACK_HOST` | Synthetic bearer tokens are documented in README; binding to `127.0.0.1` prevents LAN exposure |
 | `CREATE_FIELDS` | Enforces OpenAPI `additionalProperties: false` at the adapter |
@@ -74,9 +79,11 @@ const CREATE_FIELDS = new Set(["tenantId", "customerId", "serviceCategory"]);
 
 UUIDs and bearer strings are **public test fixtures**, not secrets. They are exported for tests only. Two tenants prove cross-tenant denial (`403`).
 
+The directory is a `Map`, not a plain object. A `Record` lookup resolves inherited names, so `Bearer __proto__` or `Bearer constructor` returned a truthy value and reached tenant authorization as `403` instead of failing authentication as `401`. A `Map` only answers for registered keys.
+
 ### 4.3 `GatewayRequest` / `GatewayResponse` (lines 24–41)
 
-The handler accepts a **narrow struct** (method, url, authorization, body) instead of full Node `IncomingMessage`. That keeps unit tests free of sockets and documents exactly what the adapter needs from HTTP.
+The handler accepts a **narrow struct** (method, url, authorization, contentType, body) instead of full Node `IncomingMessage`. That keeps unit tests free of sockets and documents exactly what the adapter needs from HTTP. `contentType` is part of the struct because the contract declares a single media type: dropping the header at the socket boundary let a `text/plain` body be parsed as JSON.
 
 `workManagement` is exposed on the gateway object so tests can assert outbox/repository side effects without HTTP.
 
@@ -96,6 +103,7 @@ if (parts.length !== 2) return undefined;
 1. Valid JSON object
 2. No unknown fields (contract alignment)
 3. UUID-shaped ids and string `serviceCategory`
+4. `serviceCategory` within the schema `maxLength`
 
 **Domain validation** (e.g. non-empty `serviceCategory`) stays in `WorkRequest.create` and surfaces as `400` via the use-case catch block. That preserves domain → application → adapter direction.
 
@@ -108,13 +116,14 @@ Reads the stream with a byte cap, **then keeps draining** after the limit so kee
 Order is fixed and security-relevant:
 
 ```text
-route check → authenticate → size/shape parse → tenant authorize → use case
+route check → authenticate → media type → size/shape parse → tenant authorize → use case
 ```
 
 | Step | Status | Notes |
 | --- | --- | --- |
 | Wrong path/method | `404` | Not in OpenAPI; internal routing fallback |
 | No/invalid bearer | `401` | Before body parsing |
+| Non-JSON media type | `415` | After authentication, before parsing an unclaimed payload |
 | Bad JSON/shape/size | `400` | Before tenant or domain |
 | Tenant mismatch | `403` | `assertTenantAccess`; nothing written to outbox |
 | Domain invalid | `400` | Maps `Invalid work request` only |
@@ -136,16 +145,19 @@ Minimal entrypoint: parse `PORT`, call `listen`, print POC banner. Port fallback
 
 Exports `appName` (workspace convention) and `createWorkRequestGateway` only. Synthetic constants stay in the implementation/test module, not the public package surface.
 
-## 5. OpenAPI changes (additive v1)
+## 5. OpenAPI changes (v1.1.0)
 
 Extended `contracts/openapi/work-management.v1.yaml` with:
 
-- `CreateWorkRequest` request body
+- `CreateWorkRequest` request body, required, `application/json` only
 - `WorkRequestAccepted` for `202`
-- `ErrorBody` for `4xx`
+- `ErrorBody` for `4xx`, including a documented `415`
 - `X-Correlation-Id` response header
+- `serviceCategory` bounded by `minLength`, `maxLength`, and a non-whitespace `pattern`
 
-**Why additive:** same `info.version` and path — no second contract file. Repository contract checks require versioned schemas under `contracts/` (`HC-ARCH-002`).
+**Compatibility:** the operation previously declared no request body, so requiring one is compatibility-sensitive rather than purely additive. The decision, its evidence, and the absence of a migration burden are recorded in [ADR-0005](../../docs/adr/0005-work-management-v1-request-body-contract.md), and `info.version` moves to `1.1.0` inside the existing `v1` contract (`HC-ARCH-002`).
+
+**Schema/implementation parity:** every adapter rejection has a schema counterpart. A whitespace-only or over-long `serviceCategory` is now contract-invalid, so the server never rejects a request the published schema accepts.
 
 ## 6. Tests
 
@@ -156,11 +168,14 @@ Extended `contracts/openapi/work-management.v1.yaml` with:
 | `202` + outbox event | Happy path + event emission |
 | Cross-tenant `getById` undefined | Tenant isolation |
 | Whitespace `serviceCategory` | Domain rule via HTTP |
-| Malformed JSON, unknown field, oversized body | Adapter validation |
+| Malformed JSON, unknown field, over-long category, oversized body | Adapter validation |
 | Missing/unknown/multi-segment bearer | Authentication strictness |
+| `__proto__`, `constructor`, `toString` bearer tokens | Prototype-chain lookup regression |
+| Missing, `text/plain`, and charset-qualified media types | `415` and contract parity |
 | Cross-tenant body with valid bearer B | `403` + no outbox write |
 | Wrong path/method | Routing fallback |
 | Socket test + oversized then reuse | Stream draining / keep-alive |
+| Socket test + `text/plain` | Header is forwarded, not dropped |
 
 Tests import synthetic UUIDs from the gateway module to avoid drift between fixtures and assertions.
 
@@ -171,8 +186,10 @@ Tests import synthetic UUIDs from the gateway module to avoid drift between fixt
 | Tenant gate before data | `assertTenantAccess` before `execute` |
 | No secret leakage | Stable error codes; no stacks in responses |
 | Local-only listen | `127.0.0.1` |
-| Body bound | 8 KiB max |
+| Body bound | 8 KiB max, plus a bounded `serviceCategory` |
 | Unknown JSON fields rejected | Matches `additionalProperties: false` |
+| Registered tokens only | `Map` lookup; inherited property names cannot authenticate |
+| Declared media type only | `application/json` required before the body is parsed |
 
 **Explicitly not in scope:** JWT validation, rate limiting, TLS, audit persistence, production IdP.
 
@@ -201,6 +218,28 @@ Full repo gate before merge:
 pnpm run validate
 ```
 
-## 10. Recommendation
+## 10. Review remediation
+
+Findings raised on the pull request and how each was resolved.
+
+| Finding | Rule | Resolution |
+| --- | --- | --- |
+| Bearer lookup resolved inherited property names, so an unknown token reached tenant authorization and returned `403` instead of `401` | `HC-SEC-002` | Directory changed to a `Map`; regression test reproduced `403` before the fix and asserts `401` after |
+| Socket adapter dropped `Content-Type`, so a `text/plain` body was parsed as JSON despite a JSON-only contract | `HC-ARCH-002` | Header forwarded into `handle`; unsupported media types return a documented `415` |
+| Schema `minLength: 1` accepted whitespace the adapter rejects, so a schema-valid request could fail | `HC-ARCH-002` | Non-whitespace `pattern` and `maxLength` added and mirrored by the adapter and contract test |
+| Required request body on an existing operation lacked compatibility evidence | `HC-ARCH-002` | ADR-0005 records the decision, evidence, and migration position; `info.version` moved to `1.1.0` |
+| Glossary edit replaced the AI orchestration entry instead of adding the new term | `HC-DOC-001` | Both entries now present |
+
+The declared response body was also questioned against an acceptance criterion of
+`{ id, status: "pending_review", correlationId }`. That criterion appeared only in
+the pull-request description and is not part of the POC charter, which requires
+the contract's `202` / `400` / `401` / `403` outcomes without prescribing field
+names. The adapter, schema, and tests consistently return `requestId`,
+`tenantId`, `status`, and `correlationId`, and `submitted` is the real
+`WorkRequestStatus` produced by `WorkRequest.create`. The description was
+corrected to the charter wording rather than inventing a public status the
+domain does not have.
+
+## 11. Recommendation
 
 **Reuse** this gateway composition for the next HTTP slice (qualify/list). **Replace** synthetic auth and in-memory adapters when Platform and architecture review approve IdP and persistence. This POC does **not** approve Express/Fastify, deployment topology, or production security controls.

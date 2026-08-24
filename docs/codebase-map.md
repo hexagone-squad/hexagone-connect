@@ -53,7 +53,7 @@
 
 | Path | Coverage |
 | --- | --- |
-| `apps/api-gateway/test/` | HTTP adapter tests for `202` / `400` / `401` / `403` and cross-tenant denial. |
+| `apps/api-gateway/test/` | HTTP adapter tests for `202` / `400` / `401` / `403` / `415` and cross-tenant denial. |
 | `services/work-management/test/` | Work-management use-case tests. |
 | `services/identity-tenant/test/` | Tenant authorization tests. |
 | `services/ai-orchestration/test/` | AI orchestration contract tests. |

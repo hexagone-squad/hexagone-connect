@@ -22,6 +22,7 @@ const postRequest = (body: unknown, authorization: string | undefined = AUTH_TEN
   method: "POST" as string | undefined,
   url: "/v1/work-requests" as string | undefined,
   authorization,
+  contentType: "application/json" as string | undefined,
   body: typeof body === "string" ? body : JSON.stringify(body)
 });
 
@@ -70,8 +71,13 @@ describe("POST /v1/work-requests HTTP adapter", () => {
     const oversized = await gateway.handle(
       postRequest({ ...validBody, serviceCategory: "x".repeat(9_000) })
     );
+    const overLongCategory = await gateway.handle(
+      postRequest({ ...validBody, serviceCategory: "x".repeat(201) })
+    );
 
-    expect([malformed.status, unknownField.status, oversized.status]).toEqual([400, 400, 400]);
+    expect([malformed.status, unknownField.status, oversized.status, overLongCategory.status]).toEqual([
+      400, 400, 400, 400
+    ]);
     expect(gateway.workManagement.outbox.events).toHaveLength(0);
   });
 
@@ -86,6 +92,32 @@ describe("POST /v1/work-requests HTTP adapter", () => {
     expect(missing.status).toBe(401);
     expect(unknown.status).toBe(401);
     expect(multiSegment.status).toBe(401);
+  });
+
+  it("returns 401 for tokens inherited from the object prototype chain", async () => {
+    const gateway = createWorkRequestGateway();
+    const inherited = ["__proto__", "constructor", "toString"];
+
+    for (const token of inherited) {
+      const response = await gateway.handle(postRequest(validBody, `Bearer ${token}`));
+      expect(response.status).toBe(401);
+    }
+    expect(gateway.workManagement.outbox.events).toHaveLength(0);
+  });
+
+  it("returns 415 when the body is not declared as application/json", async () => {
+    const gateway = createWorkRequestGateway();
+    const textPlain = await gateway.handle({ ...postRequest(validBody), contentType: "text/plain" });
+    const missingType = await gateway.handle({ ...postRequest(validBody), contentType: undefined });
+    const withCharset = await gateway.handle({
+      ...postRequest(validBody),
+      contentType: "application/json; charset=utf-8"
+    });
+
+    expect(textPlain.status).toBe(415);
+    expect(JSON.parse(textPlain.body)).toEqual({ error: "unsupported_media_type" });
+    expect(missingType.status).toBe(415);
+    expect(withCharset.status).toBe(202);
   });
 
   it("returns 403 when an authenticated principal targets another tenant", async () => {
@@ -126,6 +158,16 @@ describe("POST /v1/work-requests HTTP adapter", () => {
       expect(response.status).toBe(202);
       expect(response.headers.get("x-correlation-id")).toBeTruthy();
       await response.body?.cancel();
+
+      // The socket adapter must forward Content-Type so the contracted media
+      // type is enforced on the wire, not only through direct handle() calls.
+      const wrongMediaType = await fetch(`http://127.0.0.1:${port}/v1/work-requests`, {
+        method: "POST",
+        headers: { authorization: AUTH_TENANT_A, "content-type": "text/plain" },
+        body: JSON.stringify(validBody)
+      });
+      expect(wrongMediaType.status).toBe(415);
+      await wrongMediaType.body?.cancel();
 
       // An oversized body must be rejected without leaving the connection unusable.
       const oversized = await fetch(`http://127.0.0.1:${port}/v1/work-requests`, {

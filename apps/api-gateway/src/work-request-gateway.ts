@@ -5,6 +5,8 @@ import { buildWorkManagement } from "@hexagone/work-management";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_BODY_BYTES = 8_192;
+const MAX_SERVICE_CATEGORY_LENGTH = 200;
+const JSON_MEDIA_TYPE = "application/json";
 const WORK_REQUESTS_PATH = "/v1/work-requests";
 // The synthetic bearer directory below is public, so the POC never leaves the host.
 const LOOPBACK_HOST = "127.0.0.1";
@@ -16,15 +18,18 @@ export const SYNTHETIC_CUSTOMER_A = "22222222-2222-4222-8222-222222222222";
 export const SYNTHETIC_BEARER_TENANT_A = "synthetic-tenant-a";
 export const SYNTHETIC_BEARER_TENANT_B = "synthetic-tenant-b";
 
-const syntheticDirectory: Record<string, RequestPrincipal> = {
-  [SYNTHETIC_BEARER_TENANT_A]: { userId: "user-a", tenantIds: [SYNTHETIC_TENANT_A], roles: ["operator"] },
-  [SYNTHETIC_BEARER_TENANT_B]: { userId: "user-b", tenantIds: [SYNTHETIC_TENANT_B], roles: ["operator"] }
-};
+// A Map keeps lookups to registered tokens only; a plain object would resolve
+// inherited names such as __proto__ or constructor to truthy values.
+const syntheticDirectory = new Map<string, RequestPrincipal>([
+  [SYNTHETIC_BEARER_TENANT_A, { userId: "user-a", tenantIds: [SYNTHETIC_TENANT_A], roles: ["operator"] }],
+  [SYNTHETIC_BEARER_TENANT_B, { userId: "user-b", tenantIds: [SYNTHETIC_TENANT_B], roles: ["operator"] }]
+]);
 
 export interface GatewayRequest {
   method: string | undefined;
   url: string | undefined;
   authorization: string | undefined;
+  contentType: string | undefined;
   body: string;
 }
 
@@ -61,8 +66,11 @@ const resolvePrincipal = (authorization: string | undefined): RequestPrincipal |
   const parts = (authorization ?? "").split(" ");
   if (parts.length !== 2) return undefined;
   const [scheme, token] = parts;
-  return scheme === "Bearer" && token ? syntheticDirectory[token] : undefined;
+  return scheme === "Bearer" && token ? syntheticDirectory.get(token) : undefined;
 };
+
+const isJsonMediaType = (contentType: string | undefined): boolean =>
+  (contentType ?? "").split(";")[0].trim().toLowerCase() === JSON_MEDIA_TYPE;
 
 const isUuid = (value: unknown): value is string => typeof value === "string" && UUID_PATTERN.test(value);
 
@@ -80,6 +88,7 @@ const parseCreateBody = (raw: string): CreateWorkRequestBody | undefined => {
   if (!isUuid(body.tenantId) || !isUuid(body.customerId) || typeof body.serviceCategory !== "string") {
     return undefined;
   }
+  if (body.serviceCategory.length > MAX_SERVICE_CATEGORY_LENGTH) return undefined;
   return {
     tenantId: body.tenantId,
     customerId: body.customerId,
@@ -113,6 +122,10 @@ export const createWorkRequestGateway = (): WorkRequestGateway => {
 
     const principal = resolvePrincipal(request.authorization);
     if (!principal) return errorResponse(401, "unauthenticated", correlationId);
+
+    if (!isJsonMediaType(request.contentType)) {
+      return errorResponse(415, "unsupported_media_type", correlationId);
+    }
 
     const body =
       Buffer.byteLength(request.body, "utf8") > MAX_BODY_BYTES ? undefined : parseCreateBody(request.body);
@@ -158,6 +171,7 @@ export const createWorkRequestGateway = (): WorkRequestGateway => {
           method: request.method,
           url: request.url,
           authorization: request.headers.authorization,
+          contentType: request.headers["content-type"],
           body: await readIncomingBody(request)
         });
         response.writeHead(result.status, result.headers);

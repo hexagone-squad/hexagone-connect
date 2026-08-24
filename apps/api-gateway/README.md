@@ -9,7 +9,7 @@ For a change log and code-level rationale, see [IMPLEMENTATION.md](./IMPLEMENTAT
 
 ## Problem
 
-Can the repository expose the existing `createWorkRequest` use case behind the canonical OpenAPI operation, with tenant isolation and contract statuses `202` / `400` / `401` / `403`, without rebuilding work-management or inventing a second API?
+Can the repository expose the existing `createWorkRequest` use case behind the canonical OpenAPI operation, with tenant isolation and contract statuses `202` / `400` / `401` / `403` / `415`, without rebuilding work-management or inventing a second API?
 
 ## Scope
 
@@ -18,7 +18,7 @@ Included:
 - Node `http` adapter in this workspace (no new HTTP framework)
 - Synthetic bearer directory (not an identity provider)
 - In-memory work-management adapters reused from `buildWorkManagement()`
-- Additive request/response schemas on `contracts/openapi/work-management.v1.yaml`
+- Request/response schemas on `contracts/openapi/work-management.v1.yaml`, versioned as `1.1.0` under the compatibility decision in [ADR-0005](../../docs/adr/0005-work-management-v1-request-body-contract.md)
 
 Excluded:
 
@@ -68,7 +68,8 @@ Failure demonstrations:
 - omit `Authorization` → `401` `{ "error": "unauthenticated" }`
 - use `Bearer synthetic-tenant-b` with tenant A's `tenantId` → `403` `{ "error": "unauthorized_tenant" }`
 - set `serviceCategory` to whitespace → `400` `{ "error": "invalid_request" }`
-- send an unknown field, malformed JSON, or a body over 8 KiB → `400` `{ "error": "invalid_request" }`
+- send an unknown field, malformed JSON, a `serviceCategory` over 200 characters, or a body over 8 KiB → `400` `{ "error": "invalid_request" }`
+- send the body without `Content-Type: application/json` → `415` `{ "error": "unsupported_media_type" }`
 
 Any other path or method returns `404`. Only the documented `POST` operation is served, so `404` is a routing fallback and is intentionally not part of the contract.
 
@@ -83,6 +84,7 @@ pnpm test:unit
 ```text
 HTTP POST /v1/work-requests
   -> resolve synthetic principal
+  -> require Content-Type: application/json
   -> assertTenantAccess (identity-tenant)
   -> CreateWorkRequest (work-management application)
   -> in-memory repository + outbox
@@ -90,7 +92,7 @@ HTTP POST /v1/work-requests
 
 Imports use workspace packages `@hexagone/work-management` and `@hexagone/identity-tenant`. Cross-service source paths are not used (`HC-ARCH-001`).
 
-The adapter validates shape only: UUID format, known fields, and a bounded body size. Business rules such as a non-empty `serviceCategory` stay in the domain and surface as `400` through the use case.
+The adapter validates transport and shape only: media type, UUID format, known fields, a bounded `serviceCategory` length, and a bounded body size. Business rules such as a non-empty `serviceCategory` stay in the domain and surface as `400` through the use case. Every constraint the adapter enforces is expressed in the OpenAPI document, so a request that satisfies the schema is never rejected for shape.
 
 ## Security / privacy / tenant
 
@@ -99,6 +101,8 @@ The adapter validates shape only: UUID format, known fields, and a bounded body 
 - No production secrets, no personal data (`HC-SEC-001`).
 - Error bodies carry a stable code only; no stack traces or internal messages.
 - Request bodies are capped at 8 KiB and unknown fields are rejected.
+- The synthetic directory is a `Map`, so only registered tokens authenticate; names inherited from the object prototype chain (`__proto__`, `constructor`) return `401`.
+- Only `application/json` is accepted, so a body is never parsed under an unclaimed media type.
 
 ## Cleanup
 
