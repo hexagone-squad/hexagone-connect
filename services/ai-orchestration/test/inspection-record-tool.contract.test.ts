@@ -2,14 +2,18 @@ import { describe, expect, it, vi } from "vitest";
 import { getInspectionRecord } from "../src/inspection-record-tool.js";
 
 describe("inspection record tool contract", () => {
-  it("returns a synthetic inspection record for an authorized tenant", async () => {
+  it("returns a bounded synthetic record for an authorized tenant", async () => {
     const recordToolAudit = vi.fn(async () => undefined);
 
-    const record = await getInspectionRecord(
+    const result = await getInspectionRecord(
       {
         tenantId: "tenant-1",
         inspectionId: "insp-1",
-        principal: { userId: "u-1", tenantIds: ["tenant-1"] }
+        correlationId: "corr-001",
+        principal: {
+          userId: "u-1",
+          tenantIds: ["tenant-1"]
+        }
       },
       {
         getSyntheticInspectionRecord: async () => ({
@@ -22,20 +26,27 @@ describe("inspection record tool contract", () => {
       }
     );
 
-    expect(record.inspectionId).toBe("insp-1");
-    expect(record.tenantId).toBe("tenant-1");
+    expect(result.record.inspectionId).toBe("insp-1");
+    expect(result.record.tenantId).toBe("tenant-1");
+    expect(result.correlationId).toBe("corr-001");
+    expect(result.invocationCount).toBe(1);
+    expect(result.latencyMs).toBeGreaterThanOrEqual(0);
+
     expect(recordToolAudit).toHaveBeenCalledWith(
       expect.objectContaining({
         toolName: "getInspectionRecord",
         tenantId: "tenant-1",
         inspectionId: "insp-1",
         userId: "u-1",
-        outcome: "success"
+        correlationId: "corr-001",
+        outcome: "success",
+        invocationCount: 1
       })
     );
   });
 
-  it("denies access when the principal is not authorized for the tenant", async () => {
+  it("denies access before retrieval for an unauthorized tenant", async () => {
+    const getSyntheticInspectionRecord = vi.fn(async () => null);
     const recordToolAudit = vi.fn(async () => undefined);
 
     await expect(
@@ -43,24 +54,30 @@ describe("inspection record tool contract", () => {
         {
           tenantId: "tenant-2",
           inspectionId: "insp-1",
-          principal: { userId: "u-1", tenantIds: ["tenant-1"] }
+          correlationId: "corr-002",
+          principal: {
+            userId: "u-1",
+            tenantIds: ["tenant-1"]
+          }
         },
         {
-          getSyntheticInspectionRecord: async () => null,
+          getSyntheticInspectionRecord,
           recordToolAudit
         }
       )
     ).rejects.toThrow("Tenant access denied");
 
+    expect(getSyntheticInspectionRecord).not.toHaveBeenCalled();
+
     expect(recordToolAudit).toHaveBeenCalledWith(
       expect.objectContaining({
-        tenantId: "tenant-2",
+        correlationId: "corr-002",
         outcome: "denied"
       })
     );
   });
 
-  it("rejects a retrieved record that belongs to another tenant", async () => {
+  it("rejects a retrieved record belonging to another tenant", async () => {
     const recordToolAudit = vi.fn(async () => undefined);
 
     await expect(
@@ -68,7 +85,11 @@ describe("inspection record tool contract", () => {
         {
           tenantId: "tenant-1",
           inspectionId: "insp-1",
-          principal: { userId: "u-1", tenantIds: ["tenant-1"] }
+          correlationId: "corr-003",
+          principal: {
+            userId: "u-1",
+            tenantIds: ["tenant-1"]
+          }
         },
         {
           getSyntheticInspectionRecord: async () => ({
@@ -89,7 +110,7 @@ describe("inspection record tool contract", () => {
     );
   });
 
-  it("returns a deterministic not-found error when the record does not exist", async () => {
+  it("returns a deterministic not-found error", async () => {
     const recordToolAudit = vi.fn(async () => undefined);
 
     await expect(
@@ -97,7 +118,11 @@ describe("inspection record tool contract", () => {
         {
           tenantId: "tenant-1",
           inspectionId: "missing",
-          principal: { userId: "u-1", tenantIds: ["tenant-1"] }
+          correlationId: "corr-004",
+          principal: {
+            userId: "u-1",
+            tenantIds: ["tenant-1"]
+          }
         },
         {
           getSyntheticInspectionRecord: async () => null,
@@ -108,9 +133,33 @@ describe("inspection record tool contract", () => {
 
     expect(recordToolAudit).toHaveBeenCalledWith(
       expect.objectContaining({
-        inspectionId: "missing",
         outcome: "not-found"
       })
     );
+  });
+
+  it("rejects missing correlation metadata", async () => {
+    const getSyntheticInspectionRecord = vi.fn(async () => null);
+    const recordToolAudit = vi.fn(async () => undefined);
+
+    await expect(
+      getInspectionRecord(
+        {
+          tenantId: "tenant-1",
+          inspectionId: "insp-1",
+          correlationId: "",
+          principal: {
+            userId: "u-1",
+            tenantIds: ["tenant-1"]
+          }
+        },
+        {
+          getSyntheticInspectionRecord,
+          recordToolAudit
+        }
+      )
+    ).rejects.toThrow("Invalid inspection record tool input");
+
+    expect(getSyntheticInspectionRecord).not.toHaveBeenCalled();
   });
 });
