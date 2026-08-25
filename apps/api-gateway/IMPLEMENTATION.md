@@ -5,241 +5,113 @@
 > **Reviewer (planned):** Chapelle Kabangu  
 > **Operational guide:** [README.md](./README.md)
 
-This document explains **what changed**, **why each block was written this way**, and **what was deliberately left out**. It complements the readiness charter in [engineering-readiness-poc-guide.md §5.3](../../docs/foundation/engineering-readiness-poc-guide.md).
+This document records the decisions behind the adapter: why it lives where it does, why the request pipeline is ordered the way it is, and what was deliberately left out. It complements the readiness charter in [engineering-readiness-poc-guide.md section 5.3](../../docs/foundation/engineering-readiness-poc-guide.md). The code itself is the reference for behavior; this file does not restate it.
 
 ## 1. Goal
 
-Expose the existing `CreateWorkRequest` use case over HTTP as `POST /v1/work-requests`, with:
+Expose the existing `CreateWorkRequest` use case over HTTP as `POST /v1/work-requests` with contract statuses `202`, `400`, `401`, `403`, and `415`, tenant authorization before any use-case call (`HC-SEC-002`), and no duplicated domain logic or second API contract (`HC-ARCH-002`).
 
-- contract statuses `202`, `400`, `401`, `403`, `415`
-- tenant authorization before any use-case call (`HC-SEC-002`)
-- no duplicated domain logic and no second API contract (`HC-ARCH-002`)
-
-The POC answers: *can we add a runnable HTTP boundary without rebuilding work-management?*
+The POC answers one question: can we add a runnable HTTP boundary without rebuilding work-management?
 
 ## 2. Change inventory
 
-| Area | Files | Purpose |
-| --- | --- | --- |
-| HTTP adapter | `src/work-request-gateway.ts`, `src/main.ts`, `src/index.ts` | Map HTTP → auth → use case |
-| Tests | `test/create-work-request.http.test.ts` | Adapter + tenant isolation evidence |
-| Contract | `contracts/openapi/work-management.v1.yaml` | Request/response schemas, version `1.1.0` |
-| Contract decision | `docs/adr/0005-work-management-v1-request-body-contract.md` | Compatibility evidence for the required request body |
-| Contract test | `tests/contracts/work-management-openapi.test.ts` | Lock contract shape in CI |
-| Package exports | `services/identity-tenant`, `services/work-management` | Public workspace APIs for composition |
-| Root script | `package.json` → `poc:http-adapter` | One documented local start command |
-| Env template | `.env.example` → `PORT` | Optional listen port |
-| Docs | `README.md`, root `README.md`, architecture/codebase maps | Register runtime and boundaries |
+| Area              | Files                                                        | Purpose                                              |
+| ----------------- | ------------------------------------------------------------ | ---------------------------------------------------- |
+| HTTP adapter      | `src/work-request-gateway.ts`, `src/main.ts`, `src/index.ts` | Map HTTP to authentication, authorization, use case  |
+| Tests             | `test/create-work-request.http.test.ts`                      | Adapter and tenant isolation evidence                |
+| Contract          | `contracts/openapi/work-management.v1.yaml`                  | Request/response schemas, version `1.1.0`            |
+| Contract decision | `docs/adr/0005-work-management-v1-request-body-contract.md`  | Compatibility evidence for the required request body |
+| Contract test     | `tests/contracts/work-management-openapi.test.ts`            | Lock contract shape in CI                            |
+| Package exports   | `services/identity-tenant`, `services/work-management`       | Public workspace APIs for composition                |
+| Root script       | `package.json` → `poc:http-adapter`                          | One documented local start command                   |
+| Env template      | `.env.example` → `PORT`                                      | Optional listen port                                 |
+| Docs              | `README.md`, root `README.md`, architecture/codebase maps    | Register runtime and boundaries                      |
 
 No domain rules were added under `services/work-management/src/domain/`.
 
-## 3. Architecture choices
+## 3. Placement and dependencies
 
-### 3.1 Why `apps/api-gateway`?
+**Why `apps/api-gateway`.** Repository checks block cross-service source imports (`HC-ARCH-001`), and the gateway is the named edge workspace where composition belongs: it depends on `@hexagone/work-management` and `@hexagone/identity-tenant` as packages, calls `assertTenantAccess`, then invokes `CreateWorkRequest`. Putting HTTP inside `work-management` would either duplicate authentication or blur the service boundary. Chapelle's operator POC can call this boundary instead of re-implementing create.
 
-Repository checks block cross-service **source** imports (`HC-ARCH-001`). The gateway is the named BFF/edge workspace and is where **composition** belongs: it may depend on `@hexagone/work-management` and `@hexagone/identity-tenant` as packages, call `assertTenantAccess`, then invoke `CreateWorkRequest`.
+**Why Node `http` rather than Express or Fastify.** No new production dependency (`HC-DEP-001`), a single operation does not justify a router, and the POC stays easy to delete or replace once an ADR settles the real gateway stack.
 
-Putting HTTP inside `work-management` would either duplicate auth or blur the service boundary. Chapelle’s operator POC can call this gateway instead of re-implementing create.
+**Why new package exports.** `identity-tenant/src/index.ts` exported only `serviceName`, so `assertTenantAccess` existed but was not consumable. Exporting it alongside `buildWorkManagement` lets the gateway compose without `../../services/...` paths that fail architecture checks.
 
-### 3.2 Why Node `http` instead of Express/Fastify?
+## 4. Design decisions
 
-- Zero new production dependencies (`HC-DEP-001`)
-- Single operation (`POST /v1/work-requests`) — a framework would add surface without proving the domain boundary
-- Keeps the POC easy to delete or replace after an ADR on the real gateway stack
+**Pipeline order is security-relevant.** The handler runs: route match, authenticate, media type, size and shape parse, tenant authorization, use case. Authentication precedes body parsing so an anonymous caller cannot reach the parser, and tenant authorization precedes the use case so a cross-tenant request writes nothing.
 
-### 3.3 Why workspace package exports?
+| Outcome             | Status | Note                                                        |
+| ------------------- | ------ | ----------------------------------------------------------- |
+| Wrong path/method   | `404`  | Not in OpenAPI; internal routing fallback                   |
+| No/invalid bearer   | `401`  | Before body parsing                                         |
+| Non-JSON media type | `415`  | After authentication, before parsing an unclaimed payload   |
+| Bad JSON/shape/size | `400`  | Before tenant or domain                                     |
+| Tenant mismatch     | `403`  | `assertTenantAccess`; nothing written to outbox             |
+| Domain invalid      | `400`  | Maps `Invalid work request` only                            |
+| Success             | `202`  | Returns ids and `correlationId`; emits `WorkRequestCreated` |
 
-`identity-tenant/src/index.ts` previously exported only `serviceName`; `assertTenantAccess` existed but was not consumable as a package. Exporting `buildWorkManagement` and `assertTenantAccess` lets the gateway compose without `from '../../services/...'` paths that fail architecture checks.
+**Token directory is a `Map`, not a `Record`.** Object lookup resolves inherited names, so `Bearer __proto__` or `Bearer constructor` returned a truthy value and reached tenant authorization as `403` instead of failing authentication as `401`. A `Map` answers only for registered keys.
 
-## 4. Code walkthrough and rationale
+**The handler takes a narrow struct, not `IncomingMessage`.** Method, url, authorization, contentType, and body are everything the adapter needs from HTTP, which keeps unit tests free of sockets. `contentType` is in the struct because dropping the header at the socket boundary previously let a `text/plain` body be parsed as JSON.
 
-### 4.1 `work-request-gateway.ts` — constants (lines 6–11)
+**`Authorization` must split into exactly two segments.** Anything else is `401`, so `Bearer token-a token-b` is never silently reduced to its first token.
 
-```typescript
-const UUID_PATTERN = /.../;
-const MAX_BODY_BYTES = 8_192;
-const MAX_SERVICE_CATEGORY_LENGTH = 200;
-const JSON_MEDIA_TYPE = "application/json";
-const WORK_REQUESTS_PATH = "/v1/work-requests";
-const LOOPBACK_HOST = "127.0.0.1";
-const CREATE_FIELDS = new Set(["tenantId", "customerId", "serviceCategory"]);
-```
+**The adapter validates transport and shape only.** JSON object, no unknown fields, UUID-shaped ids, and a bounded `serviceCategory` length. Business rules such as a non-empty category stay in `WorkRequest.create` and surface as `400` through the use-case catch block, preserving the domain, application, adapter direction.
 
-| Constant | Rationale |
-| --- | --- |
-| `UUID_PATTERN` | Matches OpenAPI `format: uuid` and `WorkRequestCreated.v1` event schema before the use case runs |
-| `MAX_BODY_BYTES` | Simple DoS guard for a POC server; oversized bodies return `400` |
-| `MAX_SERVICE_CATEGORY_LENGTH` | Mirrors the schema `maxLength`, so a schema-valid category is never rejected by the adapter |
-| `JSON_MEDIA_TYPE` | The only media type the operation declares; anything else returns `415` |
-| `WORK_REQUESTS_PATH` | Single documented operation — no generic router |
-| `LOOPBACK_HOST` | Synthetic bearer tokens are documented in README; binding to `127.0.0.1` prevents LAN exposure |
-| `CREATE_FIELDS` | Enforces OpenAPI `additionalProperties: false` at the adapter |
+**Oversized bodies are drained, not abandoned.** The reader stops buffering past the cap but keeps consuming the stream, so leftover bytes cannot poison a keep-alive connection. A test sends an oversized body then a valid request on the same connection.
 
-### 4.2 Synthetic fixtures (lines 13–22)
+**`correlationId` is reused as `eventId`** so HTTP tracing and outbox events align for later operator workflows. `requestId` is generated at the adapter because the client does not supply it, matching the current command shape.
 
-UUIDs and bearer strings are **public test fixtures**, not secrets. They are exported for tests only. Two tenants prove cross-tenant denial (`403`).
+**Synthetic fixtures are public test data, not secrets.** Two tenants exist so cross-tenant denial can be proven. `index.ts` exports only `appName` and `createWorkRequestGateway`; fixtures stay out of the package surface.
 
-The directory is a `Map`, not a plain object. A `Record` lookup resolves inherited names, so `Bearer __proto__` or `Bearer constructor` returned a truthy value and reached tenant authorization as `403` instead of failing authentication as `401`. A `Map` only answers for registered keys.
+## 5. Contract (v1.1.0)
 
-### 4.3 `GatewayRequest` / `GatewayResponse` (lines 24–41)
+The document gained the `CreateWorkRequest` request body (required, `application/json` only), `WorkRequestAccepted` for `202`, `ErrorBody` for `4xx` including a documented `415`, the `X-Correlation-Id` response header, and a `serviceCategory` bounded by `minLength`, `maxLength`, and a non-whitespace `pattern`.
 
-The handler accepts a **narrow struct** (method, url, authorization, contentType, body) instead of full Node `IncomingMessage`. That keeps unit tests free of sockets and documents exactly what the adapter needs from HTTP. `contentType` is part of the struct because the contract declares a single media type: dropping the header at the socket boundary let a `text/plain` body be parsed as JSON.
+**Compatibility.** The operation previously declared no request body, so requiring one is compatibility-sensitive rather than purely additive. The decision, its evidence, and the absence of a migration burden are recorded in [ADR-0005](../../docs/adr/0005-work-management-v1-request-body-contract.md); `info.version` moves to `1.1.0` inside the existing `v1` contract (`HC-ARCH-002`).
 
-`workManagement` is exposed on the gateway object so tests can assert outbox/repository side effects without HTTP.
-
-### 4.4 `resolvePrincipal` (lines 60–65)
-
-```typescript
-const parts = (authorization ?? "").split(" ");
-if (parts.length !== 2) return undefined;
-```
-
-**Choice:** reject malformed `Authorization` headers (missing token, extra segments, wrong scheme) with `401`, instead of silently taking the first token segment. This avoids accidentally accepting `Bearer token-a token-b`.
-
-### 4.5 `parseCreateBody` (lines 69–88)
-
-**Transport validation only:**
-
-1. Valid JSON object
-2. No unknown fields (contract alignment)
-3. UUID-shaped ids and string `serviceCategory`
-4. `serviceCategory` within the schema `maxLength`
-
-**Domain validation** (e.g. non-empty `serviceCategory`) stays in `WorkRequest.create` and surfaces as `400` via the use-case catch block. That preserves domain → application → adapter direction.
-
-### 4.6 `readIncomingBody` (lines 90–102)
-
-Reads the stream with a byte cap, **then keeps draining** after the limit so keep-alive connections are not poisoned by leftover bytes. A test sends an oversized body followed by a valid request on the same connection.
-
-### 4.7 `handle` pipeline (lines 107–152)
-
-Order is fixed and security-relevant:
-
-```text
-route check → authenticate → media type → size/shape parse → tenant authorize → use case
-```
-
-| Step | Status | Notes |
-| --- | --- | --- |
-| Wrong path/method | `404` | Not in OpenAPI; internal routing fallback |
-| No/invalid bearer | `401` | Before body parsing |
-| Non-JSON media type | `415` | After authentication, before parsing an unclaimed payload |
-| Bad JSON/shape/size | `400` | Before tenant or domain |
-| Tenant mismatch | `403` | `assertTenantAccess`; nothing written to outbox |
-| Domain invalid | `400` | Maps `Invalid work request` only |
-| Success | `202` | Returns ids + `correlationId`; emits `WorkRequestCreated` |
-
-`correlationId` is reused as `eventId` so HTTP tracing and outbox events align for operator workflows later.
-
-`requestId` is generated at the adapter (new UUID per create) — the client does not supply it, matching the current use-case command shape.
-
-### 4.8 `listen` (lines 154–169)
-
-Wraps `handle` for real HTTP. The outer `.catch` returns generic `500` JSON without stack traces (`HC-SEC-001`). Binds to `LOOPBACK_HOST` only.
-
-### 4.9 `main.ts`
-
-Minimal entrypoint: parse `PORT`, call `listen`, print POC banner. Port fallback `3000` matches `.env.example`.
-
-### 4.10 `index.ts`
-
-Exports `appName` (workspace convention) and `createWorkRequestGateway` only. Synthetic constants stay in the implementation/test module, not the public package surface.
-
-## 5. OpenAPI changes (v1.1.0)
-
-Extended `contracts/openapi/work-management.v1.yaml` with:
-
-- `CreateWorkRequest` request body, required, `application/json` only
-- `WorkRequestAccepted` for `202`
-- `ErrorBody` for `4xx`, including a documented `415`
-- `X-Correlation-Id` response header
-- `serviceCategory` bounded by `minLength`, `maxLength`, and a non-whitespace `pattern`
-
-**Compatibility:** the operation previously declared no request body, so requiring one is compatibility-sensitive rather than purely additive. The decision, its evidence, and the absence of a migration burden are recorded in [ADR-0005](../../docs/adr/0005-work-management-v1-request-body-contract.md), and `info.version` moves to `1.1.0` inside the existing `v1` contract (`HC-ARCH-002`).
-
-**Schema/implementation parity:** every adapter rejection has a schema counterpart. A whitespace-only or over-long `serviceCategory` is now contract-invalid, so the server never rejects a request the published schema accepts.
+**Parity.** Every adapter rejection has a schema counterpart, so the server never rejects a request the published schema accepts. The contract test asserts this rather than trusting review.
 
 ## 6. Tests
 
-`test/create-work-request.http.test.ts` covers:
+`test/create-work-request.http.test.ts` covers the happy path with its outbox event and cross-tenant read isolation; `400` for whitespace category, malformed JSON, unknown field, over-long category, and oversized body; `401` for missing, unknown, multi-segment, and prototype-chain tokens; `415` for missing and `text/plain` media types, with `application/json; charset=utf-8` still accepted; `403` with no outbox write; and the routing fallback.
 
-| Case | Evidence for |
-| --- | --- |
-| `202` + outbox event | Happy path + event emission |
-| Cross-tenant `getById` undefined | Tenant isolation |
-| Whitespace `serviceCategory` | Domain rule via HTTP |
-| Malformed JSON, unknown field, over-long category, oversized body | Adapter validation |
-| Missing/unknown/multi-segment bearer | Authentication strictness |
-| `__proto__`, `constructor`, `toString` bearer tokens | Prototype-chain lookup regression |
-| Missing, `text/plain`, and charset-qualified media types | `415` and contract parity |
-| Cross-tenant body with valid bearer B | `403` + no outbox write |
-| Wrong path/method | Routing fallback |
-| Socket test + oversized then reuse | Stream draining / keep-alive |
-| Socket test + `text/plain` | Header is forwarded, not dropped |
+Two cases run over a real socket rather than through `handle`, because both defects they cover were socket-level: a dropped `Content-Type` header, and an unusable connection after an oversized body. `tests/contracts/work-management-openapi.test.ts` locks the contract shape, version, and `serviceCategory` constraints.
 
-Tests import synthetic UUIDs from the gateway module to avoid drift between fixtures and assertions.
+Tests import synthetic UUIDs from the gateway module so fixtures and assertions cannot drift apart.
 
 ## 7. Security posture (POC scope)
 
-| Control | Implementation |
-| --- | --- |
-| Tenant gate before data | `assertTenantAccess` before `execute` |
-| No secret leakage | Stable error codes; no stacks in responses |
-| Local-only listen | `127.0.0.1` |
-| Body bound | 8 KiB max, plus a bounded `serviceCategory` |
-| Unknown JSON fields rejected | Matches `additionalProperties: false` |
-| Registered tokens only | `Map` lookup; inherited property names cannot authenticate |
-| Declared media type only | `application/json` required before the body is parsed |
+| Control                      | Implementation                                             |
+| ---------------------------- | ---------------------------------------------------------- |
+| Tenant gate before data      | `assertTenantAccess` before `execute`                      |
+| Registered tokens only       | `Map` lookup; inherited property names cannot authenticate |
+| Declared media type only     | `application/json` required before the body is parsed      |
+| Unknown JSON fields rejected | Matches `additionalProperties: false`                      |
+| Body bound                   | 8 KiB max, plus a bounded `serviceCategory`                |
+| No secret leakage            | Stable error codes; no stack traces in responses           |
+| Local-only listen            | `127.0.0.1`                                                |
 
-**Explicitly not in scope:** JWT validation, rate limiting, TLS, audit persistence, production IdP.
+**Explicitly not in scope:** JWT validation, rate limiting, TLS, audit persistence, production identity provider.
 
 ## 8. Intentionally not changed
 
-- PostgreSQL / outbox persistence (Abdou’s POC)
-- `qualifyWorkRequest` over HTTP (Chapelle’s POC)
-- `WorkRequestQualified` event schema registration
-- UI apps (`admin-portal`, etc.)
-- New HTTP framework dependency
+PostgreSQL and outbox persistence (Abdou's POC), `qualifyWorkRequest` over HTTP (Chapelle's POC), `WorkRequestQualified` schema registration, UI apps, and any new HTTP framework dependency.
 
-## 9. How to validate
+## 9. Review remediation
 
-```bash
-pnpm exec vitest run apps/api-gateway services/work-management services/identity-tenant tests/contracts
-pnpm lint
-pnpm typecheck
-pnpm run check:architecture
-pnpm run check:contracts
-pnpm run check:docs
-```
+| Finding                                                    | Rule          | Resolution                                                                       |
+| ---------------------------------------------------------- | ------------- | -------------------------------------------------------------------------------- |
+| Inherited property names authenticated and returned `403`  | `HC-SEC-002`  | `Map` lookup; failure reproduced before the fix, regression test added           |
+| Socket adapter dropped `Content-Type`                      | `HC-ARCH-002` | Header forwarded; unsupported media types return a documented `415`              |
+| `minLength: 1` accepted whitespace the adapter rejects     | `HC-ARCH-002` | Non-whitespace `pattern` and `maxLength`, mirrored by adapter and contract test  |
+| Required request body lacked compatibility evidence        | `HC-ARCH-002` | ADR-0005 and `info.version` `1.1.0`                                              |
+| Glossary entry replaced instead of extended                | `HC-DOC-001`  | Both entries present                                                             |
+| Source files did not match repository Prettier conventions | —             | Reformatted to single quotes and trailing commas like the rest of the repository |
 
-Full repo gate before merge:
+The response body was also questioned against an acceptance criterion of `{ id, status: "pending_review", correlationId }`. That criterion appeared only in the pull-request description and is not in the POC charter, which requires the contract's `202`, `400`, `401`, and `403` outcomes without prescribing field names. The adapter, schema, and tests consistently return `requestId`, `tenantId`, `status`, and `correlationId`, and `submitted` is the real `WorkRequestStatus` produced by `WorkRequest.create`. The description was corrected rather than inventing a public status the domain does not have.
 
-```bash
-pnpm run validate
-```
+## 10. Recommendation
 
-## 10. Review remediation
-
-Findings raised on the pull request and how each was resolved.
-
-| Finding | Rule | Resolution |
-| --- | --- | --- |
-| Bearer lookup resolved inherited property names, so an unknown token reached tenant authorization and returned `403` instead of `401` | `HC-SEC-002` | Directory changed to a `Map`; regression test reproduced `403` before the fix and asserts `401` after |
-| Socket adapter dropped `Content-Type`, so a `text/plain` body was parsed as JSON despite a JSON-only contract | `HC-ARCH-002` | Header forwarded into `handle`; unsupported media types return a documented `415` |
-| Schema `minLength: 1` accepted whitespace the adapter rejects, so a schema-valid request could fail | `HC-ARCH-002` | Non-whitespace `pattern` and `maxLength` added and mirrored by the adapter and contract test |
-| Required request body on an existing operation lacked compatibility evidence | `HC-ARCH-002` | ADR-0005 records the decision, evidence, and migration position; `info.version` moved to `1.1.0` |
-| Glossary edit replaced the AI orchestration entry instead of adding the new term | `HC-DOC-001` | Both entries now present |
-
-The declared response body was also questioned against an acceptance criterion of
-`{ id, status: "pending_review", correlationId }`. That criterion appeared only in
-the pull-request description and is not part of the POC charter, which requires
-the contract's `202` / `400` / `401` / `403` outcomes without prescribing field
-names. The adapter, schema, and tests consistently return `requestId`,
-`tenantId`, `status`, and `correlationId`, and `submitted` is the real
-`WorkRequestStatus` produced by `WorkRequest.create`. The description was
-corrected to the charter wording rather than inventing a public status the
-domain does not have.
-
-## 11. Recommendation
-
-**Reuse** this gateway composition for the next HTTP slice (qualify/list). **Replace** synthetic auth and in-memory adapters when Platform and architecture review approve IdP and persistence. This POC does **not** approve Express/Fastify, deployment topology, or production security controls.
+**Reuse** this composition for the next HTTP slice (qualify or list). **Replace** synthetic authentication and in-memory adapters when Platform and architecture review approve an identity provider and persistence. This POC does **not** approve Express or Fastify, deployment topology, or production security controls.
