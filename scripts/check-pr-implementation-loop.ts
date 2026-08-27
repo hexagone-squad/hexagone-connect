@@ -158,11 +158,9 @@ export function validatePrEvidence(
 
 function gitContext(baseRef: string): { changedFiles: string[]; diffHash: string } {
   const base = `origin/${baseRef}`;
-  const changedFiles = execFileSync(
-    'git',
-    ['diff', '--name-only', `${base}...HEAD`],
-    { encoding: 'utf8' },
-  )
+  const changedFiles = execFileSync('git', ['diff', '--name-only', `${base}...HEAD`], {
+    encoding: 'utf8',
+  })
     .split('\n')
     .filter(Boolean);
   const diff = execFileSync('git', ['diff', '--binary', `${base}...HEAD`], {
