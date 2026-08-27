@@ -100,6 +100,19 @@ describe('POST /v1/work-requests HTTP adapter', () => {
     expect(multiSegment.status).toBe(401);
   });
 
+  it('accepts the bearer scheme case-insensitively', async () => {
+    const gateway = createWorkRequestGateway();
+    const lower = await gateway.handle(
+      postRequest(validBody, `bearer ${SYNTHETIC_BEARER_TENANT_A}`),
+    );
+    const upper = await gateway.handle(
+      postRequest(validBody, `BEARER ${SYNTHETIC_BEARER_TENANT_A}`),
+    );
+
+    expect(lower.status).toBe(202);
+    expect(upper.status).toBe(202);
+  });
+
   it('returns 401 for tokens inherited from the object prototype chain', async () => {
     const gateway = createWorkRequestGateway();
     const inherited = ['__proto__', 'constructor', 'toString'];
@@ -147,6 +160,21 @@ describe('POST /v1/work-requests HTTP adapter', () => {
 
     expect(otherPath.status).toBe(404);
     expect(otherMethod.status).toBe(404);
+  });
+
+  it('emits an error when the listen bind fails', async () => {
+    const first = createWorkRequestGateway().listen(0);
+    await once(first, 'listening');
+    try {
+      const { port } = first.address() as AddressInfo;
+      const second = createWorkRequestGateway().listen(port);
+      const [error] = (await once(second, 'error')) as [NodeJS.ErrnoException];
+      expect(error.code).toBe('EADDRINUSE');
+      second.close();
+    } finally {
+      first.close();
+      await once(first, 'close');
+    }
   });
 
   it('serves the contract over a listening HTTP socket', async () => {

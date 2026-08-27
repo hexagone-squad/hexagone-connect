@@ -66,6 +66,7 @@ Expected response body shape: `requestId`, `tenantId`, `status: submitted`, `cor
 Failure demonstrations:
 
 - omit `Authorization` → `401` `{ "error": "unauthenticated" }`
+- use `bearer` / `BEARER` (scheme is case-insensitive) with a registered token → same as `Bearer`
 - use `Bearer synthetic-tenant-b` with tenant A's `tenantId` → `403` `{ "error": "unauthorized_tenant" }`
 - set `serviceCategory` to whitespace → `400` `{ "error": "invalid_request" }`
 - send an unknown field, malformed JSON, a `serviceCategory` over 200 characters, or a body over 8 KiB → `400` `{ "error": "invalid_request" }`

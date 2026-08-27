@@ -72,7 +72,8 @@ const resolvePrincipal = (authorization: string | undefined): RequestPrincipal |
   const parts = (authorization ?? '').split(' ');
   if (parts.length !== 2) return undefined;
   const [scheme, token] = parts;
-  return scheme === 'Bearer' && token ? syntheticDirectory.get(token) : undefined;
+  // HTTP auth schemes are case-insensitive (RFC 9110); accept bearer / Bearer / BEARER.
+  return scheme.toLowerCase() === 'bearer' && token ? syntheticDirectory.get(token) : undefined;
 };
 
 const isJsonMediaType = (contentType: string | undefined): boolean =>

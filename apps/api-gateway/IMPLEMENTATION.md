@@ -55,7 +55,9 @@ No domain rules were added under `services/work-management/src/domain/`.
 
 **The handler takes a narrow struct, not `IncomingMessage`.** Method, url, authorization, contentType, and body are everything the adapter needs from HTTP, which keeps unit tests free of sockets. `contentType` is in the struct because dropping the header at the socket boundary previously let a `text/plain` body be parsed as JSON.
 
-**`Authorization` must split into exactly two segments.** Anything else is `401`, so `Bearer token-a token-b` is never silently reduced to its first token.
+**`Authorization` must split into exactly two segments.** Anything else is `401`, so `Bearer token-a token-b` is never silently reduced to its first token. The scheme itself is compared case-insensitively (`bearer` / `Bearer` / `BEARER`), per HTTP auth-scheme rules.
+
+**`main.ts` logs only after a successful bind.** The banner is written on the server `listening` event. A bind failure (for example `EADDRINUSE`) is written to stderr and sets a non-zero exit code instead of claiming the adapter is up.
 
 **The adapter validates transport and shape only.** JSON object, no unknown fields, UUID-shaped ids, and a bounded `serviceCategory` length. Business rules such as a non-empty category stay in `WorkRequest.create` and surface as `400` through the use-case catch block, preserving the domain, application, adapter direction.
 
