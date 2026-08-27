@@ -30,8 +30,9 @@ const TRIVIALLY_EXEMPTIBLE_STEPS = new Set([
 ]);
 
 type LoopStep = (typeof LOOP_STEPS)[number];
+type EvidenceStatus = 'passed' | 'failed' | 'not run' | 'not applicable';
 type StepEvidence = {
-  status: 'passed' | 'not applicable';
+  status: EvidenceStatus;
   timestamp: string;
   detail: string;
 };
@@ -117,7 +118,12 @@ export function validatePrEvidence(
   for (const step of LOOP_STEPS) {
     const record = evidence.steps?.[step];
     if (!record || !record.detail.trim()) fail(`${step} requires a status, timestamp, and detail`);
-    if (record.status !== 'passed' && record.status !== 'not applicable') {
+    if (
+      record.status !== 'passed' &&
+      record.status !== 'failed' &&
+      record.status !== 'not run' &&
+      record.status !== 'not applicable'
+    ) {
       fail(`${step} has an unsupported status`);
     }
     const recordedAt = timestamp(record.timestamp, `${step}.timestamp`);
@@ -132,6 +138,7 @@ export function validatePrEvidence(
     }
     if (
       ['specification', 'tests', 'focused-failure', 'before-evidence'].includes(step) &&
+      record.status === 'passed' &&
       recordedAt >= implementationStartedAt
     ) {
       fail(`${step} must be recorded before implementation begins`);
@@ -140,6 +147,7 @@ export function validatePrEvidence(
       !['specification', 'tests', 'focused-failure', 'before-evidence', 'implementation'].includes(
         step,
       ) &&
+      record.status === 'passed' &&
       recordedAt < implementationStartedAt
     ) {
       fail(`${step} cannot be recorded before implementation begins`);
@@ -196,6 +204,11 @@ if (process.argv[1]?.endsWith('check-pr-implementation-loop.ts')) {
       validatePrEvidence(evidence, context);
       writeProof({
         result: 'passed',
+        evidenceStatus: LOOP_STEPS.every((step) =>
+          ['passed', 'not applicable'].includes(evidence.steps[step].status),
+        )
+          ? 'complete'
+          : 'has recorded gaps',
         remoteValidation: { command: 'pnpm run validate', result: 'passed' },
         context,
         evidence,

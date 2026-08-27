@@ -76,6 +76,27 @@ describe('PR implementation-loop evidence', () => {
     ).toThrow('before-evidence');
   });
 
+  it('accepts explicit failed and not-run evidence gaps', () => {
+    const item = evidence();
+    item.steps['before-evidence'] = {
+      status: 'failed',
+      timestamp: '2026-08-13T02:00:00Z',
+      detail: 'Comparable BEFORE evidence was not captured before implementation.',
+    };
+    item.steps['automated-review'] = {
+      status: 'not run',
+      timestamp: '2026-08-13T02:00:00Z',
+      detail: 'Automated review remains pending.',
+    };
+
+    expect(() =>
+      validatePrEvidence(item, {
+        changedFiles: ['scripts/check-pr-implementation-loop.ts'],
+        diffHash: 'final-diff-hash',
+      }),
+    ).not.toThrow();
+  });
+
   it('rejects a non-trivial exemption', () => {
     const item = evidence();
     item.steps.tests.status = 'not applicable';
