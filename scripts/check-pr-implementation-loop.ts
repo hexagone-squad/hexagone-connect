@@ -160,7 +160,7 @@ function gitContext(baseRef: string): { changedFiles: string[]; diffHash: string
   const base = `origin/${baseRef}`;
   const changedFiles = execFileSync(
     'git',
-    ['diff', '--name-only', '--diff-filter=ACMR', `${base}...HEAD`],
+    ['diff', '--name-only', `${base}...HEAD`],
     { encoding: 'utf8' },
   )
     .split('\n')
