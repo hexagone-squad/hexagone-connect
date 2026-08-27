@@ -96,6 +96,19 @@ describe('work qualification HTTP boundary', () => {
       correlationId: 'correlation-http-1',
       auditEntry: { actorId: 'operator-1', resourceId: 'request-1' },
     });
+
+    const repeatedQualificationResponse = await fetch(
+      `${baseUrl}/v1/work-requests/request-1/qualification`,
+      {
+        method: 'POST',
+        headers: { ...authorizedHeaders, 'content-type': 'application/json' },
+        body: JSON.stringify({ correlationId: 'correlation-http-duplicate' }),
+      },
+    );
+    expect(repeatedQualificationResponse.status).toBe(409);
+    await expect(repeatedQualificationResponse.json()).resolves.toEqual({
+      error: 'invalid_work_request_status',
+    });
   });
 
   it('returns safe validation and not-found responses', async () => {

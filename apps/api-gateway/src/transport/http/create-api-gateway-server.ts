@@ -1,5 +1,9 @@
 import { assertTenantAccess, type RequestPrincipal } from '@hexagone/identity-tenant';
-import { buildWorkManagement } from '@hexagone/work-management';
+import {
+  buildWorkManagement,
+  InvalidWorkRequestStatusError,
+  WorkRequestNotFoundError,
+} from '@hexagone/work-management';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { authenticateSyntheticBearer } from '../../authentication/synthetic-bearer-authenticator.js';
 
@@ -166,10 +170,9 @@ export async function createApiGatewayServer(options: ApiGatewayServerOptions = 
           },
         });
       } catch (error) {
-        const message = error instanceof Error ? error.message : '';
-        if (message === 'Work request not found') {
+        if (error instanceof WorkRequestNotFoundError) {
           writeJson(response, 404, { error: 'work_request_not_found' });
-        } else if (message === 'Invalid work request status') {
+        } else if (error instanceof InvalidWorkRequestStatusError) {
           writeJson(response, 409, { error: 'invalid_work_request_status' });
         } else {
           writeJson(response, 503, { error: 'service_unavailable' });
