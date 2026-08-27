@@ -47,7 +47,14 @@ importers:
 
   apps/admin-portal: {}
 
-  apps/api-gateway: {}
+  apps/api-gateway:
+    dependencies:
+      '@hexagone/identity-tenant':
+        specifier: workspace:*
+        version: link:../../services/identity-tenant
+      '@hexagone/work-management':
+        specifier: workspace:*
+        version: link:../../services/work-management
 
   apps/inspection-app: {}
 

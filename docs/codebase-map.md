@@ -4,7 +4,7 @@
 
 | Path | Purpose |
 | --- | --- |
-| `apps/` | App workspaces. Current files are placeholders that export app names only. |
+| `apps/` | App workspaces. `apps/api-gateway` contains a training/POC HTTP adapter; other apps currently export names only. |
 | `services/` | Domain service workspaces. `work-management`, `identity-tenant`, and `ai-orchestration` contain real behavior today. |
 | `packages/` | Shared package workspaces. Keep shared code small and stable. |
 | `contracts/openapi/` | Canonical versioned OpenAPI documents. |
@@ -22,6 +22,8 @@
 | --- | --- |
 | `package.json` | Root command surface. |
 | `scripts/run-ci.ts` | Deterministic validation sequence for `pnpm run validate`. |
+| `apps/api-gateway/src/main.ts` | Training/POC HTTP listener for `POST /v1/work-requests`. |
+| `apps/api-gateway/src/work-request-gateway.ts` | HTTP mapping, synthetic bearer directory, and tenant check before `CreateWorkRequest`. |
 | `services/work-management/src/composition-root.ts` | Work-management use-case wiring for tests and callers. |
 | `services/identity-tenant/src/authorization.ts` | Tenant access assertion helper. |
 | `services/ai-orchestration/src/inspection-assistant.ts` | Inspection assistant orchestration entry point. |
@@ -51,6 +53,7 @@
 
 | Path | Coverage |
 | --- | --- |
+| `apps/api-gateway/test/` | HTTP adapter tests for `202` / `400` / `401` / `403` / `415` and cross-tenant denial. |
 | `services/work-management/test/` | Work-management use-case tests. |
 | `services/identity-tenant/test/` | Tenant authorization tests. |
 | `services/ai-orchestration/test/` | AI orchestration contract tests. |
@@ -84,4 +87,5 @@
 | Public API shape | `contracts/openapi/` plus contract validation tests. |
 | Event shape | `contracts/events/` plus contract validation tests. |
 | Repository validation rule | `scripts/` plus a test under `tests/governance/` or `tests/architecture/`. |
+| HTTP adapter for work-request creation | `apps/api-gateway` plus focused tests under `apps/api-gateway/test/`. Do not copy domain rules into the gateway. |
 | App UI | The owning `apps/*` workspace, after adding UI runtime and tests. |

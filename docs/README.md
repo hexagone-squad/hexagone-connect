@@ -25,6 +25,8 @@ Use this page as the canonical navigation map. Prefer updating these documents o
 ## Area Notes
 
 - [Applications](../apps/README.md)
+- [API gateway work-request POC](../apps/api-gateway/README.md)
+- [API gateway implementation notes](../apps/api-gateway/IMPLEMENTATION.md)
 - [Services](../services/README.md)
 - [Work management service](../services/work-management/README.md)
 - [AI orchestration service](../services/ai-orchestration/README.md)
