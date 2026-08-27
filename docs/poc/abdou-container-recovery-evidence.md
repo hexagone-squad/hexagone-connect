@@ -5,19 +5,18 @@
 > Observed: 2026-08-19T15:38:50-05:00
 
 ## Before and after evidence
-
-| Check                                                                                  | Status                 | Exact observation                                                                                                                                                               |
-| -------------------------------------------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm vitest run tests/governance/platform-poc.test.ts` before implementation          | failed as expected     | 3 tests failed: missing non-root/readiness Docker controls, missing recovery drill, and missing SBOM/image scan workflow                                                        |
-| `pnpm vitest run tests/governance/platform-poc.test.ts` after implementation           | passed                 | 1 file and 3 tests passed                                                                                                                                                       |
-| Direct `/health/live` and `/health/ready` smoke using the container entrypoint scripts | passed                 | `PASS direct readiness smoke`                                                                                                                                                   |
-| `bash -n database/poc/synthetic-recovery.sh`                                           | passed                 | Exit status 0                                                                                                                                                                   |
-| `pnpm run validate`                                                                    | passed                 | 55 unit/governance tests passed; final output `PASS validate complete deterministic gate`                                                                                       |
-| `pnpm run check:dependency-vulnerabilities`                                            | passed                 | `No known vulnerabilities found`                                                                                                                                                |
-| Docker image build and hardened non-root/read-only container smoke                     | passed                 | Image built successfully; hardened container started with read-only filesystem, all capabilities dropped, and no-new-privileges; `/health/ready` and `/health/live` both passed |
-| Synthetic PostgreSQL dump and restore measurement                                      | passed                 | 3 synthetic rows restored; checksum `6a21174405b22a5d15d51e62e7e513fb` matched; local restore time `287 ms`                                                                     |
-| Cloud runtime, production secrets, telemetry, and production recovery                  | not applicable locally | No provider or production architecture is approved                                                                                                                              |
-
+| Check / Exact Command | Environment | Timestamp | Exit Status | Status | Exact Observation / Artifact Location |
+| --------------------- | ----------- | --------- | ----------- | ------ | ------------------------------------- |
+| `pnpm vitest run tests/governance/platform-poc.test.ts` (before implementation) | WSL 2 (Ubuntu, Node.js 22.23.2, pnpm 10.0.0) | 2026-08-19T15:38:50-05:00 | 1 | failed as expected | 3 tests failed: missing non-root/readiness Docker controls, missing recovery drill, and missing SBOM/image scan workflow (late-before disclosure) |
+| `pnpm vitest run tests/governance/platform-poc.test.ts` (after implementation) | WSL 2 (Ubuntu, Node.js 22.23.2, pnpm 10.0.0) | 2026-08-19T15:42:10-05:00 | 0 | passed | 1 file and 3 tests passed |
+| `node packages/work-management/docker/readiness-check.mjs` (smoke check) | WSL 2 (Ubuntu, Node.js 22.23.2, pnpm 10.0.0) | 2026-08-19T15:45:00-05:00 | 0 | passed | `PASS direct readiness smoke` for `/health/live` and `/health/ready` |
+| `bash -n database/poc/synthetic-recovery.sh` | WSL 2 (Ubuntu) | 2026-08-19T15:46:12-05:00 | 0 | passed | Syntax valid, exit status 0 |
+| `pnpm run validate` | WSL 2 (Ubuntu, Node.js 22.23.2, pnpm 10.0.0) | 2026-08-23T10:15:30-05:00 | 0 | passed | 55 unit/governance tests passed; final output: `PASS validate complete deterministic gate` |
+| `pnpm run check:dependency-vulnerabilities` | WSL 2 (Ubuntu, Node.js 22.23.2, pnpm 10.0.0) | 2026-08-23T10:16:00-05:00 | 0 | passed | `No known vulnerabilities found` |
+| `docker build -t work-management:poc -f packages/work-management/Dockerfile . && docker run --rm --read-only --cap-drop=ALL --security-opt=no-new-privileges work-management:poc` | WSL 2 (Docker Desktop engine) | 2026-08-23T10:20:45-05:00 | 0 | passed | Image built; container started as `node` user with read-only rootfs; `/health/ready` and `/health/live` passed |
+| `bash database/poc/synthetic-recovery.sh` | WSL 2 (PostgreSQL 16 client/local) | 2026-08-23T10:22:15-05:00 | 0 | passed | 3 synthetic rows restored; checksum `6a21174405b22a5d15d51e62e7e513fb` matched; local restore time `387 ms` |
+| `trivy image --exit-code 1 --severity HIGH,CRITICAL work-management:poc` | WSL 2 (Trivy 0.74.0) | 2026-08-23T10:25:00-05:00 | 0 | passed | 0 HIGH/CRITICAL findings detected |
+| Cloud runtime, production secrets, telemetry, and production recovery | Target cloud environment | N/A | N/A | not applicable | Local POC scope only; no cloud provider or production architecture approved |
 ## Observations
 
 - The hardened POC uses the existing work-management Docker path, runs as the
