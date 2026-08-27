@@ -1,0 +1,35 @@
+name: Container POC Security Evidence
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  container-poc-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build --pull -t hexagone/work-management:poc services/work-management
+      - name: Non-root readiness smoke test
+        run: |
+          docker run -d --rm --name work-management-poc --read-only --cap-drop ALL --security-opt no-new-privileges -p 3000:3000 hexagone/work-management:poc
+          trap 'docker stop work-management-poc' EXIT
+          for attempt in {1..15}; do curl --fail --silent http://127.0.0.1:3000/health/ready && break; test "$attempt" != 15; sleep 1; done
+          test "$(docker inspect --format '{{.Config.User}}' work-management-poc)" = node
+      - run: mkdir -p .ci-artifacts/container
+      - uses: anchore/sbom-action@v0
+        with:
+          image: hexagone/work-management:poc
+          format: spdx-json
+          output-file: .ci-artifacts/container/work-management.spdx.json
+      - uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: hexagone/work-management:poc
+          format: json
+          output: .ci-artifacts/container/trivy.json
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: container-poc-security-evidence
+          path: .ci-artifacts/container/

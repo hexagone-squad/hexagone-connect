@@ -160,11 +160,16 @@ jobs:
           path: .ci-artifacts/implementation-loop/
           if-no-files-found: warn
 
+  container-poc-security:
+    name: container-poc-security
+    uses: ./.github/workflows/container-poc-security.yml
+
   pr-validation-gate:
     name: pr-validation-gate
     runs-on: ubuntu-latest
     needs:
       - build-lint-type-unit
+      - container-poc-security
       - integration-e2e-a11y
       - governance-ownership-policy
       - license-compliance
