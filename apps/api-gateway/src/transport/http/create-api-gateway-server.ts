@@ -38,7 +38,8 @@ function tenantContext(
     return undefined;
   }
   const tenantHeader = request.headers['x-tenant-id'];
-  const tenantId = Array.isArray(tenantHeader) ? tenantHeader[0] : tenantHeader;
+  const tenantRaw = Array.isArray(tenantHeader) ? tenantHeader[0] : tenantHeader;
+  const tenantId = typeof tenantRaw === 'string' ? tenantRaw.trim() : '';
   if (!tenantId) {
     writeJson(response, 400, { error: 'tenant_required' });
     return undefined;
