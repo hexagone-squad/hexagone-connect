@@ -16,6 +16,7 @@
 | `docker build -t work-management:poc -f packages/work-management/Dockerfile . && docker run --rm --read-only --cap-drop=ALL --security-opt=no-new-privileges work-management:poc` | WSL 2 (Docker Desktop engine) | 2026-08-23T10:20:45-05:00 | 0 | passed | Image built; container started as `node` user with read-only rootfs; `/health/ready` and `/health/live` passed |
 | `bash database/poc/synthetic-recovery.sh` | WSL 2 (PostgreSQL 16 client/local) | 2026-08-23T10:22:15-05:00 | 0 | passed | 3 synthetic rows restored; checksum `6a21174405b22a5d15d51e62e7e513fb` matched; local restore time `387 ms` |
 | `trivy image --exit-code 1 --severity HIGH,CRITICAL work-management:poc` | WSL 2 (Trivy 0.74.0) | 2026-08-23T10:25:00-05:00 | 0 | passed | 0 HIGH/CRITICAL findings detected |
+| `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --severity HIGH,CRITICAL --exit-code 1 hexagone/work-management:poc` | WSL 2 (Ubuntu; Docker client/server 29.7.2; Trivy 0.74.0) | 2026-08-27T19:04:35Z | 0 | passed | `hexagone/work-management:poc` (Alpine 3.23.5): 0 vulnerabilities; Yarn target: 0; Corepack target: 0; no HIGH/CRITICAL findings |
 | Cloud runtime, production secrets, telemetry, and production recovery | Target cloud environment | N/A | N/A | not applicable | Local POC scope only; no cloud provider or production architecture approved |
 ## Observations
 
