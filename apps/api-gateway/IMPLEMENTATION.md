@@ -55,9 +55,11 @@ No domain rules were added under `services/work-management/src/domain/`.
 
 **The handler takes a narrow struct, not `IncomingMessage`.** Method, url, authorization, contentType, and body are everything the adapter needs from HTTP, which keeps unit tests free of sockets. `contentType` is in the struct because dropping the header at the socket boundary previously let a `text/plain` body be parsed as JSON.
 
-**`Authorization` must split into exactly two segments.** Anything else is `401`, so `Bearer token-a token-b` is never silently reduced to its first token. The scheme itself is compared case-insensitively (`bearer` / `Bearer` / `BEARER`), per HTTP auth-scheme rules.
+**`Authorization` must split into exactly two segments.** Anything else is `401`, so `Bearer token-a token-b` is never silently reduced to its first token. Splitting on runs of whitespace after trimming keeps the two-segment rule while accepting the spacing RFC 9110 permits, and the scheme is compared case-insensitively (`bearer` / `Bearer` / `BEARER`). The token is still matched exactly, so leniency applies to framing only, never to credentials.
 
-**`main.ts` logs only after a successful bind.** The banner is written on the server `listening` event. A bind failure (for example `EADDRINUSE`) is written to stderr and sets a non-zero exit code instead of claiming the adapter is up.
+**A failure after the status line is flushed closes the connection instead of answering twice.** The socket handler's rejection path used an unconditional `writeHead(500)`, which throws `ERR_HTTP_HEADERS_SENT` when the response was already started — inside a rejection handler, that becomes an unhandled rejection and stops the process. The fallback now answers `500` only while the response is untouched, and otherwise destroys it.
+
+**`main.ts` reports the port it actually bound.** The banner is written on the `listening` event and reads the port from `server.address()`, so `PORT=0` (OS-chosen port) is reported truthfully. An out-of-range or non-numeric `PORT` would make `listen` throw synchronously, so the value is validated and the fallback to `3000` is announced on stderr rather than applied silently. The `error` handler is registered with `on`, not `once`, because a post-bind error with no listener would terminate the process.
 
 **The adapter validates transport and shape only.** JSON object, no unknown fields, UUID-shaped ids, and a bounded `serviceCategory` length. Business rules such as a non-empty category stay in `WorkRequest.create` and surface as `400` through the use-case catch block, preserving the domain, application, adapter direction.
 
@@ -77,9 +79,9 @@ The document gained the `CreateWorkRequest` request body (required, `application
 
 ## 6. Tests
 
-`test/create-work-request.http.test.ts` covers the happy path with its outbox event and cross-tenant read isolation; `400` for whitespace category, malformed JSON, unknown field, over-long category, and oversized body; `401` for missing, unknown, multi-segment, and prototype-chain tokens; `415` for missing and `text/plain` media types, with `application/json; charset=utf-8` still accepted; `403` with no outbox write; and the routing fallback.
+`test/create-work-request.http.test.ts` covers the happy path with its outbox event and cross-tenant read isolation; `400` for whitespace category, malformed JSON, unknown field, over-long category, and oversized body; `401` for missing, unknown, multi-segment, and prototype-chain tokens; `202` for lower-case, upper-case, and extra-spaced bearer schemes; `415` for missing and `text/plain` media types, with `application/json; charset=utf-8` still accepted; `403` with no outbox write; and the routing fallback.
 
-Two cases run over a real socket rather than through `handle`, because both defects they cover were socket-level: a dropped `Content-Type` header, and an unusable connection after an oversized body. `tests/contracts/work-management-openapi.test.ts` locks the contract shape, version, and `serviceCategory` constraints.
+Four cases run over a real socket rather than through `handle`, because the behavior they cover only exists at the socket boundary: a dropped `Content-Type` header, an unusable connection after an oversized body, a bind failure surfaced as `EADDRINUSE`, and a client that disconnects mid-body — after which the server must still answer the next request. `tests/contracts/work-management-openapi.test.ts` locks the contract shape, version, and `serviceCategory` constraints.
 
 Tests import synthetic UUIDs from the gateway module so fixtures and assertions cannot drift apart.
 
@@ -111,6 +113,8 @@ PostgreSQL and outbox persistence (Abdou's POC), `qualifyWorkRequest` over HTTP 
 | Required request body lacked compatibility evidence        | `HC-ARCH-002` | ADR-0005 and `info.version` `1.1.0`                                              |
 | Glossary entry replaced instead of extended                | `HC-DOC-001`  | Both entries present                                                             |
 | Source files did not match repository Prettier conventions | —             | Reformatted to single quotes and trailing commas like the rest of the repository |
+| Bearer scheme was compared case-sensitively                | —             | Scheme lower-cased, RFC 9110 spacing accepted, regression test added             |
+| Banner claimed the gateway was up before the bind          | —             | Banner moved to the `listening` event; bind errors go to stderr with exit code 1 |
 
 The response body was also questioned against an acceptance criterion of `{ id, status: "pending_review", correlationId }`. That criterion appeared only in the pull-request description and is not in the POC charter, which requires the contract's `202`, `400`, `401`, and `403` outcomes without prescribing field names. The adapter, schema, and tests consistently return `requestId`, `tenantId`, `status`, and `correlationId`, and `submitted` is the real `WorkRequestStatus` produced by `WorkRequest.create`. The description was corrected rather than inventing a public status the domain does not have.
 

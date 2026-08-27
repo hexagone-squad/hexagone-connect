@@ -44,7 +44,7 @@ pnpm run poc:http-adapter
 
 Expected stdout: `POC NOT FOR PRODUCTION: POST /v1/work-requests listening on http://127.0.0.1:3000`.
 
-Optional listen port: `PORT` in `.env.example` (default `3000`).
+Optional listen port: `PORT` in `.env.example` (default `3000`). `PORT=0` binds an OS-chosen free port, and the banner reports the port actually bound. An out-of-range or non-numeric value is ignored with a stderr notice and the default is used. If the port is already taken, stderr reports the bind failure and the process exits non-zero instead of printing the banner.
 
 Synthetic request that must return `202`:
 

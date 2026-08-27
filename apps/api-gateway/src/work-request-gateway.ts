@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { createServer, type IncomingMessage, type Server } from 'node:http';
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { assertTenantAccess, type RequestPrincipal } from '@hexagone/identity-tenant';
 import { buildWorkManagement } from '@hexagone/work-management';
 
@@ -69,10 +69,11 @@ const errorResponse = (status: number, error: string, correlationId: string): Ga
 });
 
 const resolvePrincipal = (authorization: string | undefined): RequestPrincipal | undefined => {
-  const parts = (authorization ?? '').split(' ');
+  // RFC 9110 allows one or more spaces between scheme and credentials, and the
+  // scheme itself is case-insensitive. The token is still matched exactly.
+  const parts = (authorization ?? '').trim().split(/\s+/);
   if (parts.length !== 2) return undefined;
   const [scheme, token] = parts;
-  // HTTP auth schemes are case-insensitive (RFC 9110); accept bearer / Bearer / BEARER.
   return scheme.toLowerCase() === 'bearer' && token ? syntheticDirectory.get(token) : undefined;
 };
 
@@ -120,6 +121,19 @@ const readIncomingBody = async (request: IncomingMessage): Promise<string> => {
     }
   }
   return Buffer.concat(chunks).toString('utf8');
+};
+
+// Failures raised after the status line was flushed (aborted connection, write
+// error) cannot be answered with a second writeHead, which would throw
+// ERR_HTTP_HEADERS_SENT inside the rejection handler and stop the process.
+const failClosed = (response: ServerResponse): void => {
+  if (response.writableEnded) return;
+  if (response.headersSent) {
+    response.destroy();
+    return;
+  }
+  response.writeHead(500, { 'content-type': 'application/json; charset=utf-8' });
+  response.end(JSON.stringify({ error: 'internal' }));
 };
 
 export const createWorkRequestGateway = (): WorkRequestGateway => {
@@ -191,8 +205,7 @@ export const createWorkRequestGateway = (): WorkRequestGateway => {
         response.writeHead(result.status, result.headers);
         response.end(result.body);
       })().catch(() => {
-        response.writeHead(500, { 'content-type': 'application/json; charset=utf-8' });
-        response.end(JSON.stringify({ error: 'internal' }));
+        failClosed(response);
       });
     }).listen(port, LOOPBACK_HOST);
 

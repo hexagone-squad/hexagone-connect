@@ -1,5 +1,5 @@
 import { once } from 'node:events';
-import type { AddressInfo } from 'node:net';
+import { connect, type AddressInfo } from 'node:net';
 import { describe, expect, it } from 'vitest';
 import {
   SYNTHETIC_BEARER_TENANT_A,
@@ -100,7 +100,7 @@ describe('POST /v1/work-requests HTTP adapter', () => {
     expect(multiSegment.status).toBe(401);
   });
 
-  it('accepts the bearer scheme case-insensitively', async () => {
+  it('accepts the bearer scheme case-insensitively and tolerates RFC 9110 spacing', async () => {
     const gateway = createWorkRequestGateway();
     const lower = await gateway.handle(
       postRequest(validBody, `bearer ${SYNTHETIC_BEARER_TENANT_A}`),
@@ -108,9 +108,13 @@ describe('POST /v1/work-requests HTTP adapter', () => {
     const upper = await gateway.handle(
       postRequest(validBody, `BEARER ${SYNTHETIC_BEARER_TENANT_A}`),
     );
+    const padded = await gateway.handle(
+      postRequest(validBody, `  Bearer   ${SYNTHETIC_BEARER_TENANT_A} `),
+    );
 
     expect(lower.status).toBe(202);
     expect(upper.status).toBe(202);
+    expect(padded.status).toBe(202);
   });
 
   it('returns 401 for tokens inherited from the object prototype chain', async () => {
@@ -174,6 +178,40 @@ describe('POST /v1/work-requests HTTP adapter', () => {
     } finally {
       first.close();
       await once(first, 'close');
+    }
+  });
+
+  it('stays available after a client aborts mid-body', async () => {
+    const server = createWorkRequestGateway().listen(0);
+    await once(server, 'listening');
+    try {
+      const { port } = server.address() as AddressInfo;
+      const socket = connect(port, '127.0.0.1');
+      await once(socket, 'connect');
+      const truncatedRequest = [
+        'POST /v1/work-requests HTTP/1.1',
+        'host: 127.0.0.1',
+        `authorization: ${AUTH_TENANT_A}`,
+        'content-type: application/json',
+        'content-length: 512',
+        '',
+        '{"tenantId":',
+      ].join('\r\n');
+      socket.write(truncatedRequest, () => {
+        socket.destroy();
+      });
+      await once(socket, 'close');
+
+      const afterAbort = await fetch(`http://127.0.0.1:${port}/v1/work-requests`, {
+        method: 'POST',
+        headers: { authorization: AUTH_TENANT_A, 'content-type': 'application/json' },
+        body: JSON.stringify(validBody),
+      });
+      expect(afterAbort.status).toBe(202);
+      await afterAbort.body?.cancel();
+    } finally {
+      server.close();
+      await once(server, 'close');
     }
   });
 
