@@ -121,6 +121,39 @@ describe("inspection record tool abuse evaluations", () => {
       })
     );
   });
+  
+  it("rejects malformed synthetic record response", async () => {
+    const recordToolAudit = vi.fn(async () => undefined);
+
+    await expect(
+      getInspectionRecord(
+        {
+          tenantId: "tenant-1",
+          inspectionId: "insp-1",
+          correlationId: "corr-malformed",
+          principal: {
+            userId: "u-1",
+            tenantIds: ["tenant-1"]
+          }
+        },
+        {
+          getSyntheticInspectionRecord: async () => ({
+            // Missing required field: inspectionId
+            tenantId: "tenant-1",
+            status: "open",
+            summary: "Malformed record"
+          } as any),
+          recordToolAudit
+        }
+      )
+    ).rejects.toThrow();
+
+    expect(recordToolAudit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        outcome: "failure"
+      })
+    );
+  });
 
   it("times out deterministically", async () => {
     const recordToolAudit = vi.fn(async () => undefined);
