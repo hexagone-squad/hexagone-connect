@@ -225,7 +225,7 @@ function redactText(value: string): string {
 }
 
 function validateSyntheticRecord(
-  record: any
+  record: SyntheticInspectionRecord
 ): void {
   if (record == null) {
     throw new Error("Malformed synthetic record response: record is null or undefined");

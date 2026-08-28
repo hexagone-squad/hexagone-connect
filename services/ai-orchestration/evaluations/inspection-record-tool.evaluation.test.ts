@@ -142,7 +142,7 @@ describe("inspection record tool abuse evaluations", () => {
             tenantId: "tenant-1",
             status: "open",
             summary: "Malformed record"
-          } as any),
+          } as Partial<SyntheticInspectionRecord>),
           recordToolAudit
         }
       )
