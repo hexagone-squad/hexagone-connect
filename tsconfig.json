@@ -8,5 +8,14 @@
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["apps", "services", "packages", "ai", "scripts", "tests", "vitest.config.ts"]
+  "include": [
+    "apps",
+    "apps/*/.storybook/**/*.ts",
+    "services",
+    "packages",
+    "ai",
+    "scripts",
+    "tests",
+    "vitest.config.ts"
+  ]
 }

@@ -3,6 +3,15 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          fluent: ['@fluentui/react-components', '@fluentui/react-icons'],
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       '/api': {

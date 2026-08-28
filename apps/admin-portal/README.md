@@ -93,6 +93,25 @@ empty, authorization, and service-failure states. In the ready state, activate
 Stop the Vite process with `Ctrl+C`. No persistent data or cloud resources need
 cleanup. Stop the API gateway process separately.
 
+## Develop components in Storybook
+
+Storybook provides an isolated workshop for the admin portal's reusable Fluent
+UI components and states. Its stories use synthetic fixtures and remain POC
+evidence; they do not approve the qualification workflow or its sample policy
+for production use.
+
+From the repository root:
+
+```bash
+pnpm --filter @hexagone/admin-portal storybook
+```
+
+Open `http://127.0.0.1:6006/`. Build the static Storybook with:
+
+```bash
+pnpm --filter @hexagone/admin-portal build-storybook
+```
+
 For a deployed environment, serve the browser and gateway behind the same
 origin and reverse-proxy `/api/*` to the gateway after stripping the `/api`
 prefix. Do not expose the synthetic bearer fixture outside local POC use.
