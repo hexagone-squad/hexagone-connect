@@ -139,7 +139,7 @@ export async function getInspectionRecord(
     throw new Error("Inspection record not found");
   }
 
-  if (record.tenantId !== input.tenantId) {
+    if (record.tenantId !== input.tenantId) {
     await recordAudit(
       input,
       dependencies,
@@ -149,6 +149,20 @@ export async function getInspectionRecord(
     );
 
     throw new Error("Tenant boundary violation in inspection record");
+  }
+
+  try {
+    validateSyntheticRecord(record);
+  } catch (error) {
+    await recordAudit(
+      input,
+      dependencies,
+      "failure",
+      startedAt,
+      invocationCount
+    );
+
+    throw error;
   }
 
   const sanitizedRecord = redactSensitiveData(record);
@@ -209,6 +223,31 @@ function redactText(value: string): string {
     .replace(/secret\s*[:=]\s*\S+/gi, "[REDACTED]")
     .replace(/api[_-]?key\s*[:=]\s*\S+/gi, "[REDACTED]");
 }
+
+function validateSyntheticRecord(
+  record: any
+): void {
+  if (record == null) {
+    throw new Error("Malformed synthetic record response: record is null or undefined");
+  }
+
+  if (!record.inspectionId || !String(record.inspectionId).trim()) {
+    throw new Error("Malformed synthetic record response: inspectionId is required");
+  }
+
+  if (!record.tenantId || !String(record.tenantId).trim()) {
+    throw new Error("Malformed synthetic record response: tenantId is required");
+  }
+
+  if (!record.status || !["open", "closed", "requires-review"].includes(record.status)) {
+    throw new Error("Malformed synthetic record response: invalid status");
+  }
+
+  if (!record.summary || !String(record.summary).trim()) {
+    throw new Error("Malformed synthetic record response: summary is required");
+  }
+}
+
 
 function elapsedMs(startedAt: number): number {
   return Number((performance.now() - startedAt).toFixed(3));
