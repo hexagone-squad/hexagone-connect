@@ -6,6 +6,9 @@ import {
   InMemoryWorkRequestRepository,
 } from './infrastructure/in-memory-adapters.js';
 
+export { WorkRequestNotFoundError } from './application/qualify-work-request.js';
+export { InvalidWorkRequestStatusError } from './domain/work-request.js';
+
 export const buildWorkManagement = () => {
   const repository = new InMemoryWorkRequestRepository();
   const outbox = new InMemoryOutbox();
