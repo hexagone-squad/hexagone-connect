@@ -4,6 +4,27 @@ info:
   version: 1.0.0
 paths:
   /v1/work-requests:
+    get:
+      operationId: listWorkRequests
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - name: status
+          in: query
+          required: false
+          schema: { type: string, enum: [submitted] }
+      responses:
+        '200':
+          description: Tenant-scoped work requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/WorkRequestSummary' }
+        '400': { description: Invalid request }
+        '401': { description: Unauthenticated }
+        '403': { description: Unauthorized tenant access }
+        '503': { description: Service unavailable }
     post:
       operationId: createWorkRequest
       security: [{ bearerAuth: [] }]
@@ -12,6 +33,73 @@ paths:
         '400': { description: Invalid request }
         '401': { description: Unauthenticated }
         '403': { description: Unauthorized tenant access }
+  /v1/work-requests/{requestId}/qualification:
+    post:
+      operationId: qualifyWorkRequest
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/TenantHeader'
+        - name: requestId
+          in: path
+          required: true
+          schema: { type: string, minLength: 1 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [correlationId]
+              properties:
+                correlationId: { type: string, minLength: 1, maxLength: 200 }
+      responses:
+        '200':
+          description: Qualified work request and audit evidence
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/QualificationResult' }
+        '400': { description: Invalid request }
+        '401': { description: Unauthenticated }
+        '403': { description: Unauthorized tenant access }
+        '404': { description: Work request not found }
+        '409': { description: Work request cannot be qualified from its current status }
+        '503': { description: Service unavailable }
 components:
+  parameters:
+    TenantHeader:
+      name: X-Tenant-Id
+      in: header
+      required: true
+      schema: { type: string, minLength: 1 }
+  schemas:
+    WorkRequestSummary:
+      type: object
+      additionalProperties: false
+      required: [id, tenantId, serviceCategory, status]
+      properties:
+        id: { type: string }
+        tenantId: { type: string }
+        serviceCategory: { type: string }
+        status: { type: string, enum: [submitted, qualified] }
+    AuditEntry:
+      type: object
+      additionalProperties: false
+      required: [action, actorId, tenantId, resourceType, resourceId, occurredAt]
+      properties:
+        action: { type: string, const: work-request.qualified }
+        actorId: { type: string }
+        tenantId: { type: string }
+        resourceType: { type: string, const: work-request }
+        resourceId: { type: string }
+        occurredAt: { type: string, format: date-time }
+    QualificationResult:
+      type: object
+      additionalProperties: false
+      required: [item, correlationId, auditEntry]
+      properties:
+        item: { $ref: '#/components/schemas/WorkRequestSummary' }
+        correlationId: { type: string }
+        auditEntry: { $ref: '#/components/schemas/AuditEntry' }
   securitySchemes:
     bearerAuth: { type: http, scheme: bearer }

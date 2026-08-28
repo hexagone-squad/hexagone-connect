@@ -2,6 +2,13 @@ import { WorkRequest } from "../domain/work-request.js";
 import { Outbox } from "./ports/outbox.js";
 import { WorkRequestRepository } from "./ports/work-request-repository.js";
 
+export class WorkRequestNotFoundError extends Error {
+  constructor() {
+    super("Work request not found");
+    this.name = "WorkRequestNotFoundError";
+  }
+}
+
 export interface QualifyWorkRequestCommand {
   tenantId: string;
   requestId: string;
@@ -14,7 +21,7 @@ export class QualifyWorkRequest {
 
   async execute(command: QualifyWorkRequestCommand): Promise<WorkRequest> {
     const existing = await this.repository.getById(command.tenantId, command.requestId);
-    if (!existing) throw new Error("Work request not found");
+    if (!existing) throw new WorkRequestNotFoundError();
 
     const qualified = existing.qualify();
     await this.repository.save(qualified);

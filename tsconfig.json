@@ -3,9 +3,19 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "jsx": "react-jsx",
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["apps", "services", "packages", "ai", "scripts", "tests", "vitest.config.ts"]
+  "include": [
+    "apps",
+    "apps/*/.storybook/**/*.ts",
+    "services",
+    "packages",
+    "ai",
+    "scripts",
+    "tests",
+    "vitest.config.ts"
+  ]
 }

@@ -24,6 +24,10 @@ This repository installs a portable slash-command workflow system under `.github
   - `/audit`
 - Run local PR surface review:
   - `/review-pr`
+  - The review must cover correctness, architecture fit, missing scenarios,
+    naming and maintainability, usability, privacy, operational risks, and
+    evidence credibility. Each category is reported as findings, no findings,
+    or not assessable with the missing evidence named.
 - Propose enforceable constitutional amendment:
   - `/constitute`
 - Decide whether a defect should become a permanent rule:

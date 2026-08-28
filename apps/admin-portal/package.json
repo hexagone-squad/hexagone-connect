@@ -2,5 +2,26 @@
   "name": "@hexagone/admin-portal",
   "private": true,
   "version": "0.1.0",
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "build-storybook": "storybook build",
+    "dev": "vite --host 127.0.0.1",
+    "storybook": "storybook dev --host 127.0.0.1 --port 6006",
+    "test": "vitest run test"
+  },
+  "dependencies": {
+    "@fluentui/react-components": "^9.74.6",
+    "@fluentui/react-icons": "^2.0.338",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@storybook/addon-a11y": "^10.5.10",
+    "@storybook/react-vite": "^10.5.10",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^5.2.0",
+    "storybook": "^10.5.10"
+  }
 }

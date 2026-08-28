@@ -44,4 +44,26 @@ describe('workflow prompt discovery', () => {
       expect(frontmatterName(content)).toBe(name);
     }
   });
+
+  it('requires the complete judgment-based rubric for Copilot PR review', () => {
+    const prompt = readFileSync(resolve(promptDirectory, 'review-pr.prompt.md'), 'utf8');
+    const skill = readFileSync(resolve(root, 'skills/pr-review/SKILL.md'), 'utf8');
+    const requiredConcerns = [
+      'correctness',
+      'architecture fit',
+      'missing scenarios',
+      'naming and maintainability',
+      'usability',
+      'privacy',
+      'operational risks',
+      'evidence credibility',
+    ];
+
+    for (const concern of requiredConcerns) {
+      expect(prompt.toLowerCase(), `review prompt missing ${concern}`).toContain(concern);
+      expect(skill.toLowerCase(), `review skill missing ${concern}`).toContain(concern);
+    }
+    expect(prompt).toContain('skills/pr-review/SKILL.md');
+    expect(skill).toContain('not assessable');
+  });
 });
