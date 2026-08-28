@@ -24,3 +24,18 @@ Owns prompts, RAG/retrieval, agents, MCP/tool integration, provider-neutral mode
 
 - Contract tests: `services/ai-orchestration/test/inspection-assistant.contract.test.ts`
 - Evaluation tests: `services/ai-orchestration/evaluations/inspection-assistant.evaluation.test.ts`
+
+## Read-only inspection record tool POC
+
+- Added a provider-neutral getInspectionRecord tool boundary for synthetic inspection records only.
+- Tool access is tenant-scoped and fails closed on unauthorized or cross-tenant retrieval.
+- Empty identifiers are rejected before retrieval.
+- Retrieval has deterministic timeout and failure handling.
+- Every tool outcome emits an audit event: success, not-found, denied, invalid-input, timeout, or failure.
+- No write-capable operation or live data source is introduced by this POC.
+
+## POC evidence
+
+- Contract tests: services/ai-orchestration/test/inspection-record-tool.contract.test.ts
+- Abuse/failure evaluations: services/ai-orchestration/evaluations/inspection-record-tool.evaluation.test.ts
+- AI orchestration test suite: 15 tests passing
