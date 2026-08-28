@@ -38,7 +38,7 @@ export interface InspectionRecordToolDependencies {
   getSyntheticInspectionRecord(input: {
     tenantId: string;
     inspectionId: string;
-  }): Promise<SyntheticInspectionRecord | null>;
+  }): Promise<unknown>;
 
   recordToolAudit(input: {
     toolName: "getInspectionRecord";
@@ -93,7 +93,7 @@ export async function getInspectionRecord(
     throw new Error("Tenant access denied");
   }
 
-  let record: SyntheticInspectionRecord | null;
+  let record: unknown;
 
   try {
     record = await withTimeout(
@@ -138,7 +138,12 @@ export async function getInspectionRecord(
 
     throw new Error("Inspection record not found");
   }
-
+  
+  if (!isSyntheticInspectionRecord(record)) {
+    await recordAudit(input, dependencies, "failure",startedAt, invocationCount);
+    throw new Error("Malformed inspection record tool output");
+  }
+  
     if (record.tenantId !== input.tenantId) {
     await recordAudit(
       input,
@@ -293,4 +298,24 @@ async function withTimeout<T>(
       clearTimeout(timeout);
     }
   }
+}
+
+
+function isSyntheticInspectionRecord(
+  value: unknown
+): value is SyntheticInspectionRecord {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const record = value as Record<string, unknown>;
+
+  return (
+    typeof record.inspectionId === "string" &&
+    typeof record.tenantId === "string" &&
+    (record.status === "open" ||
+      record.status === "closed" ||
+      record.status === "requires-review") &&
+    typeof record.summary === "string"
+  );
 }
