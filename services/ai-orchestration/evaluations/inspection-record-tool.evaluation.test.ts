@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { getInspectionRecord } from "../src/inspection-record-tool.js";
+import { getInspectionRecord, SyntheticInspectionRecord } from "../src/inspection-record-tool.js";
 
 describe("inspection record tool abuse evaluations", () => {
   it("blocks cross-tenant access before retrieval", async () => {
